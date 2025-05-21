@@ -1,0 +1,19 @@
+<div class="carousel-container">
+  <div *ngIf="title" class="carousel-header">
+    {{ title }}
+  </div>
+  <div *ngIf="bookInstances && bookInstances.length > 0; else noBooksTemplate" class="carousel-content">
+    <button class="carousel-button prev" (click)="prev()">&#8249;</button>
+    <div class="book-grid">
+      <div class="book-wrapper" *ngFor="let bookInstance of visibleBookInstances">
+        <app-book-card [bookWithInstance]="bookInstance"></app-book-card>
+      </div>
+    </div>
+    <button class="carousel-button next" (click)="next()">&#8250;</button>
+  </div>
+  <ng-template #noBooksTemplate>
+    <div class="no-books-message">
+      No books available.
+    </div>
+  </ng-template>
+</div>

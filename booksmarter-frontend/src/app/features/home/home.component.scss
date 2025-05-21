@@ -1,0 +1,130 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rem; /* Space between sections */
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+
+.intro-section,
+.carousel-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 72rem; /* Fixed width for both sections */
+  max-width: 100%; /* Ensure it doesn't overflow on smaller screens */
+  gap: 2rem; /* Space between elements inside the section */
+  padding: 1rem;
+}
+
+.intro-section {
+  .intro-text {
+    flex: 1;
+    text-align: center; /* Align text to the left */
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      font-size: 1.2rem;
+      color: $text;
+    }
+  }
+
+  .intro-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    img {
+      width: 100%;
+      max-width: 25rem; /* Limit the image size */
+      height: 15rem; /* Maintain aspect ratio */
+      border-radius: 8px; /* Optional: rounded corners */
+      object-fit: cover;
+    }
+  }
+}
+
+.carousel-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.suggestion-section {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top:2rem;
+  margin-bottom: 2rem;
+
+  .suggestion-card {
+    position: relative;
+    width: 120%;
+    min-width: 120%;
+    background-color: $background;
+    transform: rotate(-5deg); /* Rotate the card */
+    padding: 6rem 2rem; /* Increased padding for more height */
+    min-height: 25rem; /* Ensure a taller height */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* Shadow border all around */
+    border-radius: 8px; /* Optional: rounded corners */
+    z-index: 1; /* Ensure it appears behind the content */
+  }
+
+  .suggestion-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(5deg); /* Counter-rotate the content */
+    text-align: center;
+    color: $text;
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .suggestion-input {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+
+      input {
+        flex: 1;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+        outline: none;
+      }
+
+      button {
+        @include button();
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}
+

@@ -1,0 +1,52 @@
+@use '@angular/material' as mat;
+@use '../../../styles/variables' as var;
+@use '../../../styles/mixins' as *;
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var.$background;
+  position:fixed; /* Make the toolbar stick to the top */
+  top: 0; /* Stick to the top of the viewport */
+  z-index: 1000; /* Ensure it stays above other elements */
+
+  .toolbar-logo {
+    flex-shrink: 0;
+    width: 20%;
+    height: auto;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .toolbar-button {
+      @include button();
+    }
+
+    .toolbar-search-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 0.5rem;
+      gap: 0.5rem;
+      height: 2.5rem;
+      overflow: hidden;
+      background-color: var.$background;
+
+      .toolbar-search-field {
+        display: flex;
+        align-items: center;
+        font-size: 1rem;
+        border: none;
+        outline: none;
+        flex: 1;
+        padding: 0.5rem;
+        color: #2e2626;
+        background: transparent;
+      }
+    }
+  }
+}

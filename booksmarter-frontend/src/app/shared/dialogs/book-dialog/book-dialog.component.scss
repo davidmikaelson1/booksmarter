@@ -1,0 +1,74 @@
+@use '../../../../styles/mixins' as *;
+@use '../../../../styles/variables' as *;
+
+.book-dialog {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 1.5rem;
+  max-width: 600px;
+  width: 100%;
+  box-sizing: border-box; /* Ensure padding is included in the width calculation */
+
+  .close-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .dialog-content {
+    display: flex;
+    flex-direction: row; /* Place image and text on the same row */
+    gap: 1.5rem;
+    overflow: hidden; /* Prevent horizontal scrolling */
+
+    .image-frame {
+      flex: 0 0 200px; /* Fixed width for the image */
+      max-width: 200px;
+      img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        object-fit: cover;
+      }
+    }
+
+    .book-details {
+      flex: 1; /* Allow the details section to take up remaining space */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: $text;
+      h2 {
+        margin: 0 0 1rem;
+        font-size: 1.5rem;
+        word-wrap: break-word;
+        color: $text;
+      }
+
+      p {
+        margin: 0.5rem 0;
+        font-size: 1rem;
+        word-wrap: break-word;
+        color: $text;
+      }
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+
+    button {
+      @include button();
+    }
+  }
+
+  .librarian-message {
+    font-style: italic;
+    color: #757575;
+    margin-top: 8px;
+    text-align: center;
+  }
+}

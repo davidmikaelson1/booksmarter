@@ -1,0 +1,104 @@
+<app-toolbar></app-toolbar>
+<mat-card class="auth-card">
+  <mat-tab-group [selectedIndex]="activeTab" (selectedIndexChange)="onTabChange($event)" animationDuration="200ms">
+    <!-- LOGIN TAB -->
+    <mat-tab label="Login">
+      <form [formGroup]="loginForm" (ngSubmit)="submitLogin()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" />
+          <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+            Please enter a valid email
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput formControlName="password" type="password" />
+          <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+            Password is required (min 6 chars)
+          </mat-error>
+        </mat-form-field>
+
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading">
+            {{ loading ? '…' : 'Login' }}
+          </button>
+        </div>
+      </form>
+    </mat-tab>
+
+    <!-- REGISTER TAB -->
+    <mat-tab label="Register">
+      <form [formGroup]="registerForm" (ngSubmit)="submitRegister()">
+        <div class="form-group">
+          <label class="form-label">Account Type:</label>
+          <mat-radio-group formControlName="userType" class="radio-group">
+            <mat-radio-button value="reader">Reader</mat-radio-button>
+            <mat-radio-button value="librarian">Librarian</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput formControlName="password" type="password" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <input matInput formControlName="confirmPassword" type="password" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Terminal ID</mat-label>
+          <input matInput formControlName="terminalId" type="number" />
+        </mat-form-field>
+
+        <!-- Reader-only -->
+        <div *ngIf="registerForm.get('userType')?.value === 'reader'">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>PNC</mat-label>
+            <input matInput formControlName="pnc" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address</mat-label>
+            <input matInput formControlName="address" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Phone</mat-label>
+            <input matInput formControlName="phoneNumber" />
+          </mat-form-field>
+        </div>
+
+        <!-- Librarian-only -->
+        <div *ngIf="registerForm.get('userType')?.value === 'librarian'">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Librarian ID</mat-label>
+            <input matInput formControlName="librarianId" type="number" />
+          </mat-form-field>
+        </div>
+
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="registerForm.invalid || loading">
+            {{ loading ? '…' : 'Register' }}
+          </button>
+        </div>
+      </form>
+    </mat-tab>
+  </mat-tab-group>
+
+  <div *ngIf="error" class="error">{{ error }}</div>
+</mat-card>
+<app-footer></app-footer>

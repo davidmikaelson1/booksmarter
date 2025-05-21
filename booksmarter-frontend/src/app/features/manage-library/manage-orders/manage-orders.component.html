@@ -1,0 +1,187 @@
+<mat-card class="card">
+  <mat-card-title class="card-title">Manage Orders</mat-card-title>
+
+  <!-- Existing tabs section -->
+  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)">
+    <!-- Pending Rentals Tab -->
+    <mat-tab label="Pending Rentals">
+      <div class="tab-content">
+        <div *ngIf="loadingRentals" class="loading">
+          <p>Loading pending rentals...</p>
+        </div>
+
+        <div *ngIf="!loadingRentals && pendingRentals.length === 0" class="empty-state">
+          <p>No pending rental requests</p>
+        </div>
+
+        <table *ngIf="!loadingRentals && pendingRentals.length > 0" mat-table [dataSource]="pendingRentals">
+          <!-- Book Title Column -->
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Book</th>
+            <td mat-cell *matCellDef="let rental">
+              <div class="book-info">
+                <img [src]="rental.coverUrl || 'assets/placeholder.jpg'" alt="Book cover" class="book-cover">
+                <div>
+                  <div class="book-title">{{ rental.bookTitle }}</div>
+                  <div class="book-author">{{ rental.author }}</div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Reader Column -->
+          <ng-container matColumnDef="reader">
+            <th mat-header-cell *matHeaderCellDef>Reader</th>
+            <td mat-cell *matCellDef="let rental">{{ rental.readerName }}</td>
+          </ng-container>
+
+          <!-- Request Date Column -->
+          <ng-container matColumnDef="requestDate">
+            <th mat-header-cell *matHeaderCellDef>Date Requested</th>
+            <td mat-cell *matCellDef="let rental">{{ rental.rentDate | date }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let rental">
+              <button mat-icon-button color="primary" (click)="approveRental(rental)" matTooltip="Approve">
+                <mat-icon>check_circle</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="denyRental(rental)" matTooltip="Deny">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <!-- Header and Row Definitions -->
+          <tr mat-header-row *matHeaderRowDef="rentalColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: rentalColumns;"></tr>
+        </table>
+      </div>
+    </mat-tab>
+
+    <!-- Pending Returns Tab -->
+    <mat-tab label="Pending Returns">
+      <div class="tab-content">
+        <div *ngIf="loadingReturns" class="loading">
+          <p>Loading pending returns...</p>
+        </div>
+
+        <div *ngIf="!loadingReturns && pendingReturns.length === 0" class="empty-state">
+          <p>No pending return requests</p>
+        </div>
+
+        <table *ngIf="!loadingReturns && pendingReturns.length > 0" mat-table [dataSource]="pendingReturns">
+          <!-- Book Title Column -->
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Book</th>
+            <td mat-cell *matCellDef="let return">
+              <div class="book-info">
+                <img [src]="return.coverUrl || 'assets/placeholder.jpg'" alt="Book cover" class="book-cover">
+                <div>
+                  <div class="book-title">{{ return.bookTitle || return.title }}</div>
+                  <div class="book-author">{{ return.author }}</div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Reader Column -->
+          <ng-container matColumnDef="reader">
+            <th mat-header-cell *matHeaderCellDef>Reader</th>
+            <td mat-cell *matCellDef="let return">{{ return.readerName }}</td>
+          </ng-container>
+
+          <!-- Request Date Column -->
+          <ng-container matColumnDef="requestDate">
+            <th mat-header-cell *matHeaderCellDef>Return Requested</th>
+            <td mat-cell *matCellDef="let return">{{ return.returnDate | date }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let return">
+              <button mat-icon-button color="primary" (click)="approveReturn(return)" matTooltip="Approve">
+                <mat-icon>check_circle</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="denyReturn(return)" matTooltip="Deny">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <!-- Header and Row Definitions -->
+          <tr mat-header-row *matHeaderRowDef="returnColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: returnColumns;"></tr>
+        </table>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <!-- New section for all orders -->
+  <div class="all-orders-section">
+    <h2 class="section-title">All Orders</h2>
+
+    <div *ngIf="loadingAllOrders" class="loading">
+      <p>Loading all orders...</p>
+    </div>
+
+    <div *ngIf="!loadingAllOrders && allOrders.length === 0" class="empty-state">
+      <p>No orders found in the system</p>
+    </div>
+
+    <table *ngIf="!loadingAllOrders && allOrders.length > 0" mat-table [dataSource]="allOrders" class="all-orders-table">
+      <!-- Book Title Column -->
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Book</th>
+        <td mat-cell *matCellDef="let order">
+          <div class="book-info">
+            <img [src]="order.coverUrl || 'assets/placeholder.jpg'" alt="Book cover" class="book-cover">
+            <div>
+              <div class="book-title">{{ order.bookTitle || order.title }}</div>
+              <div class="book-author">{{ order.author }}</div>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Reader Column -->
+      <ng-container matColumnDef="reader">
+        <th mat-header-cell *matHeaderCellDef>Reader</th>
+        <td mat-cell *matCellDef="let order">{{ order.readerName }}</td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let order" [ngClass]="'status-' + order.status.toLowerCase()">
+          {{ getStatusDisplay(order.status) }}
+        </td>
+      </ng-container>
+
+      <!-- Rent Date Column -->
+      <ng-container matColumnDef="rentDate">
+        <th mat-header-cell *matHeaderCellDef>Rent Date</th>
+        <td mat-cell *matCellDef="let order">{{ order.rentDate | date }}</td>
+      </ng-container>
+
+      <!-- Return Date Column (may be null) -->
+      <ng-container matColumnDef="returnDate">
+        <th mat-header-cell *matHeaderCellDef>Return Date</th>
+        <td mat-cell *matCellDef="let order">{{ order.returnDate ? (order.returnDate | date) : 'N/A' }}</td>
+      </ng-container>
+
+      <!-- Return Deadline Column -->
+      <ng-container matColumnDef="returnDeadline">
+        <th mat-header-cell *matHeaderCellDef>Return Deadline</th>
+        <td mat-cell *matCellDef="let order">{{ order.returnDeadline | date }}</td>
+      </ng-container>
+
+      <!-- Header and Row Definitions -->
+      <tr mat-header-row *matHeaderRowDef="allOrdersColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: allOrdersColumns;"></tr>
+    </table>
+  </div>
+</mat-card>

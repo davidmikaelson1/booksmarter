@@ -1,0 +1,43 @@
+<app-toolbar></app-toolbar>
+<div class="home">
+  <div class="intro-section">
+    <div class="intro-text">
+      <h1>Welcome to BookSmarter</h1>
+      <p>Your modern solution for managing libraries, smarter.</p>
+    </div>
+    <div class="intro-image">
+      <img src="assets/library.png" alt="Library" />
+    </div>
+  </div>
+
+  <div class="carousel-section">
+    <!-- Show loading spinner while books are being fetched -->
+    <div *ngIf="loading" class="loading-spinner">
+      <mat-spinner diameter="100"></mat-spinner>
+    </div>
+
+    <!-- Show carousel when books are loaded -->
+    <app-book-carousel
+      *ngIf="!loading && bookInstances.length > 0"
+      [title]="'Books in Your Terminal'"
+      [bookInstances]="bookInstances"
+    ></app-book-carousel>
+  </div>
+
+  <div class="suggestion-section">
+    <mat-card class="suggestion-card">
+      <div class="suggestion-content">
+        <h2>What book would you like to see in our collection?</h2>
+        <p>Tell us and we'll do our best to bring it for you.</p>
+        <div class="suggestion-input">
+          <input type="text" placeholder="Suggest a book" />
+          <button mat-icon-button>
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>
+
+<app-footer></app-footer>

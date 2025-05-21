@@ -1,0 +1,9 @@
+<mat-card class="book-card" (click)="openDialog()">
+  <div class="image-frame">
+    <img mat-card-image
+         [src]="(bookWithInstance?.coverUrl || book?.coverUrl || 'assets/placeholder.jpg')"
+         [alt]="bookWithInstance?.title || book?.title" />
+  </div>
+  <mat-card-title>{{ bookWithInstance?.title || book?.title }}</mat-card-title>
+  <mat-card-subtitle>{{ bookWithInstance?.author || book?.author }}</mat-card-subtitle>
+</mat-card>

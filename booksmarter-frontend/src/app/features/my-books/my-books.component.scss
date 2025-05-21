@@ -1,0 +1,118 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.my-books-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  .content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+    margin-top: 4rem;
+
+    .card {
+      width: 100%;
+      max-width: 1200px;
+      padding: 2rem;
+      background-color: $background;
+
+      .card-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        color: $text;
+      }
+
+      .books-table {
+        width: 100%;
+
+        .book-info {
+          display: flex;
+          align-items: center;
+
+          .book-cover {
+            width: 50px;
+            height: 75px;
+            object-fit: cover;
+            margin-right: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+          }
+
+          .book-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+          }
+
+          .book-author {
+            color: $text;
+            margin-top: 0.25rem;
+          }
+
+          .book-genre {
+            color: rgba(255, 255, 255, 0.7); // Using direct color instead of undefined variable
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+          }
+        }
+      }
+
+      .loading, .empty-state {
+        display: flex;
+        justify-content: center;
+        padding: 2rem;
+        color: $text;
+      }
+
+      // Status color indicators
+      .status-active {
+        color: #4caf50;
+        font-weight: bold;
+      }
+
+      .status-pending_approval, .status-pending_return {
+        color: #ff9800;
+        font-weight: bold;
+      }
+
+      .status-returned {
+        color: #2196f3;
+      }
+
+      .status-denied {
+        color: #f44336;
+      }
+
+      .overdue {
+        color: #f44336;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+// Add this to your existing styles
+::ng-deep .mat-tab-labels {
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+::ng-deep .mat-tab-label {
+  min-width: 120px;
+  font-weight: 500;
+}
+
+::ng-deep .mat-tab-group {
+  margin-bottom: 30px;
+}
+
+.status-waiting, .status-pending_approval {
+  color: #ff9800;
+}
+
+// Add appropriate spacing for the tables inside tabs
+.mat-tab-body-content {
+  padding: 16px 0;
+}

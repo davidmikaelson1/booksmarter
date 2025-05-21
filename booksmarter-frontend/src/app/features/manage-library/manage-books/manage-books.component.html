@@ -1,0 +1,61 @@
+<mat-card class="card">
+  <mat-card-title class="card-title">All books</mat-card-title>
+
+  <!-- Toolbar with Search Filter -->
+  <div class="toolbar">
+    <mat-card class="filter-search">
+      <input class="search-input" type="text" placeholder="Enter title or author" [(ngModel)]="searchQuery" />
+      <button mat-icon-button class="search-button" (click)="applyFilter()">
+        <mat-icon>search</mat-icon>
+      </button>
+    </mat-card>
+    <button mat-raised-button (click)="openAddBookDialog()">
+      Add Book
+    </button>
+  </div>
+
+  <!-- Table -->
+  <table mat-table [dataSource]="filteredBooks">
+    <!-- Title Column -->
+    <ng-container matColumnDef="title">
+      <th mat-header-cell *matHeaderCellDef> Title </th>
+      <td mat-cell *matCellDef="let book"> {{ book.title }} </td>
+    </ng-container>
+
+    <!-- Author Column -->
+    <ng-container matColumnDef="author">
+      <th mat-header-cell *matHeaderCellDef> Author </th>
+      <td mat-cell *matCellDef="let book"> {{ book.author }} </td>
+    </ng-container>
+
+    <!-- Genre Column -->
+    <ng-container matColumnDef="genre">
+      <th mat-header-cell *matHeaderCellDef> Genre </th>
+      <td mat-cell *matCellDef="let book"> {{ book.genre }} </td>
+    </ng-container>
+
+    <!-- Edit Column -->
+    <ng-container matColumnDef="edit">
+      <th mat-header-cell *matHeaderCellDef> Edit </th>
+      <td mat-cell *matCellDef="let book">
+        <button mat-icon-button (click)="editBook(book)">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <!-- Delete Column -->
+    <ng-container matColumnDef="delete">
+      <th mat-header-cell *matHeaderCellDef> Delete </th>
+      <td mat-cell *matCellDef="let book">
+        <button mat-icon-button (click)="deleteBook(book)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <!-- Header and Row Definitions -->
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</mat-card>

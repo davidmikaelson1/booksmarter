@@ -1,0 +1,44 @@
+@use '../../../../styles/mixins' as *;
+@use '../../../../styles/variables' as *;
+
+.add-book-dialog {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 1.5rem;
+  max-width: 600px;
+  width: 100%;
+  box-sizing: border-box;
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .close-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    mat-form-field {
+      width: 100%;
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+
+    button {
+      @include button();
+    }
+  }
+}

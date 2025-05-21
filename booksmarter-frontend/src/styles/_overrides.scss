@@ -1,0 +1,186 @@
+@use '@angular/material' as mat;
+@use './variables' as var;
+
+:root {
+  @include mat.form-field-overrides((
+    // General sizing and shape
+    filled-active-indicator-height: 0,
+    filled-focus-active-indicator-height: 0,
+    filled-container-shape: 20px, // Rounded corners
+    outlined-outline-width: 0,
+    outlined-focus-outline-width: 0,
+    outlined-container-shape: 20px, // Rounded corners
+
+    // Colors for filled variant
+    filled-caret-color: var.$text,
+    filled-focus-active-indicator-color: var.$text,
+    filled-focus-label-text-color: var.$text,
+    filled-container-color: var.$background,
+    filled-disabled-container-color: var.$background,
+    filled-label-text-color: var.$text,
+    filled-hover-label-text-color: var.$text, // No change on hover
+    filled-disabled-label-text-color: var.$text,
+    filled-input-text-color: var.$text,
+    filled-disabled-input-text-color: var.$text,
+    filled-input-text-placeholder-color: var.$text,
+    filled-error-hover-label-text-color: var.$text,
+    filled-error-focus-label-text-color: var.$text,
+    filled-error-label-text-color: var.$text,
+    filled-error-caret-color: var.$text,
+    filled-active-indicator-color: var.$text,
+    filled-disabled-active-indicator-color: var.$text,
+    filled-hover-active-indicator-color: var.$background, // Match background on hover
+    filled-error-active-indicator-color: var.$text,
+    filled-error-focus-active-indicator-color: var.$text,
+    filled-error-hover-active-indicator-color: var.$text,
+
+    // Colors for outlined variant
+    outlined-caret-color: var.$text,
+    outlined-focus-outline-color: var.$text,
+    outlined-focus-label-text-color: var.$text,
+    outlined-label-text-color: var.$text,
+    outlined-hover-label-text-color: var.$text, // No change on hover
+    outlined-disabled-label-text-color: var.$text,
+    outlined-input-text-color: var.$text,
+    outlined-disabled-input-text-color: var.$text,
+    outlined-input-text-placeholder-color: var.$text,
+    outlined-error-caret-color: var.$text,
+    outlined-error-focus-label-text-color: var.$text,
+    outlined-error-label-text-color: var.$text,
+    outlined-error-hover-label-text-color: var.$text,
+    outlined-outline-color: var.$text,
+    outlined-disabled-outline-color: var.$text,
+    outlined-hover-outline-color: var.$background, // Match background on hover
+    outlined-error-focus-outline-color: var.$text,
+    outlined-error-hover-outline-color: var.$text,
+    outlined-error-outline-color: var.$text,
+
+    // Other colors
+    focus-select-arrow-color: var.$text,
+    disabled-input-text-placeholder-color: var.$text,
+    state-layer-color: var.$text,
+    error-text-color: var.$text,
+    select-option-text-color: var.$text,
+    select-disabled-option-text-color: var.$text,
+    leading-icon-color: var.$text,
+    disabled-leading-icon-color: var.$text,
+    trailing-icon-color: var.$text,
+    disabled-trailing-icon-color: var.$text,
+    error-focus-trailing-icon-color: var.$text,
+    error-hover-trailing-icon-color: var.$text,
+    error-trailing-icon-color: var.$text,
+    enabled-select-arrow-color: var.$text,
+    disabled-select-arrow-color: var.$text,
+
+    // Opacity
+    hover-state-layer-opacity: 0, // No visible hover effect
+    focus-state-layer-opacity: 0.12
+  ));
+
+  @include mat.button-overrides((
+    // Filled button colors
+    filled-container-color: var.$background,
+    filled-label-text-color: var.$text,
+    filled-disabled-container-color: var.$background,
+    filled-disabled-label-text-color: var.$text,
+    filled-state-layer-color: var.$text,
+    filled-disabled-state-layer-color: var.$background,
+    filled-ripple-color: var.$text,
+    filled-hover-state-layer-opacity: 0, // No hover effect
+    filled-focus-state-layer-opacity: 0, // No focus effect
+    filled-pressed-state-layer-opacity: 0, // No pressed effect
+
+    // Outlined button colors
+    outlined-disabled-outline-color: var.$background,
+    outlined-disabled-label-text-color: var.$text,
+    outlined-label-text-color: var.$text,
+    outlined-outline-color: var.$background,
+    outlined-state-layer-color: var.$text,
+    outlined-disabled-state-layer-color: var.$background,
+    outlined-ripple-color: var.$text,
+    outlined-hover-state-layer-opacity: 0, // No hover effect
+    outlined-focus-state-layer-opacity: 0, // No focus effect
+    outlined-pressed-state-layer-opacity: 0, // No pressed effect
+
+    // Protected button colors
+    protected-container-color: var.$background,
+    protected-label-text-color: var.$text,
+    protected-disabled-container-color: var.$background,
+    protected-disabled-label-text-color: var.$text,
+    protected-state-layer-color: var.$text,
+    protected-disabled-state-layer-color: var.$background,
+    protected-ripple-color: var.$text,
+    protected-hover-state-layer-opacity: 0, // No hover effect
+    protected-focus-state-layer-opacity: 0, // No focus effect
+    protected-pressed-state-layer-opacity: 0, // No pressed effect
+
+    // Text button colors
+    text-label-text-color: var.$text,
+    text-disabled-label-text-color: var.$background,
+    text-state-layer-color: var.$text,
+    text-disabled-state-layer-color: var.$background,
+    text-ripple-color: var.$text,
+    text-hover-state-layer-opacity: 0, // No hover effect
+    text-focus-state-layer-opacity: 0, // No focus effect
+    text-pressed-state-layer-opacity: 0 // No pressed effect
+  ));
+
+  @include mat.tabs-overrides((
+    active-indicator-color: var.$primary, // Active tab indicator color
+    divider-color: var.$background, // Divider color
+    disabled-ripple-color: transparent, // No ripple effect for disabled tabs
+    pagination-icon-color: var.$text, // Pagination icon color
+    inactive-label-text-color: var.$text, // Inactive tab label text color
+    active-label-text-color: var.$text, // Active tab label text color
+    active-ripple-color: var.$text, // Ripple color for active tabs
+    inactive-ripple-color: var.$text, // Ripple color for inactive tabs
+    inactive-focus-label-text-color: var.$text, // Focused inactive tab label text color
+    inactive-hover-label-text-color: var.$text, // Hovered inactive tab label text color
+    active-focus-label-text-color: var.$text, // Focused active tab label text color
+    active-hover-label-text-color: var.$text, // Hovered active tab label text color
+    active-focus-indicator-color: var.$primary, // Focus indicator color for active tabs
+    active-hover-indicator-color: var.$primary, // Hover indicator color for active tabs
+    background-color: var.$background, // Background color for tabs
+    foreground-color: var.$text // Foreground color for tabs
+  ));
+
+  @include mat.radio-overrides((
+    // Radio button overrides
+    disabled-selected-icon-color: var.$text, // Disabled selected icon color
+    disabled-unselected-icon-color: var.$text, // Disabled unselected icon color
+    unselected-hover-icon-color: var.$text, // Unselected hover icon color
+    unselected-focus-icon-color: var.$text, // Unselected focus icon color
+    unselected-icon-color: var.$text, // Unselected icon color
+    unselected-pressed-icon-color: var.$text, // Unselected pressed icon color
+    selected-focus-icon-color: var.$primary, // Selected focus icon color
+    selected-hover-icon-color: var.$primary, // Selected hover icon color
+    selected-icon-color: var.$primary, // Selected icon color
+    selected-pressed-icon-color: var.$primary, // Selected pressed icon color
+    ripple-color: var.$text, // Ripple color for unselected
+    checked-ripple-color: var.$primary, // Ripple color for selected
+    disabled-label-color: var.$text, // Disabled label text color
+    label-text-color: var.$text // Label text color
+  ));
+
+  @include mat.paginator-overrides((
+    container-text-color: var.$text, // Use the same text color as other components
+    container-background-color: var.$background, // Use the same background color as other components
+    enabled-icon-color: var.$text, // Use the same text color for enabled icons
+    disabled-icon-color: var.$background // Use the background color for disabled icons
+  ));
+
+  @include mat.progress-spinner-overrides((
+    active-indicator-color: var.$primary, // Active indicator color
+  ));
+
+  @include mat.select-overrides((
+    panel-background-color: var.$background, // Use the background color
+    enabled-trigger-text-color: var.$text, // Use the text color for enabled trigger
+    disabled-trigger-text-color: var.$text, // Use the text color for disabled trigger
+    placeholder-text-color: var.$text, // Use the text color for placeholder
+    enabled-arrow-color: var.$text, // Use the text color for enabled arrow
+    disabled-arrow-color: var.$text, // Use the text color for disabled arrow
+    focused-arrow-color: var.$primary, // Use the primary color for focused arrow
+    invalid-arrow-color: var.$text // Use the text color for invalid arrow
+  ));
+}

@@ -1,0 +1,46 @@
+@use '../../../styles/variables' as *;
+
+.book-card {
+  width: 20rem; /* Fixed width */
+  height: 25rem; /* Fixed height */
+  margin: 16px auto;
+  background-color: $background;
+  color: $text;
+  border-radius: 8px; /* Rounded corners for the card */
+  overflow: hidden; /* Ensure child elements respect the card's rounded corners */
+  transition: transform 0.3s ease; /* Smooth animation for hover effect */
+
+  &:hover {
+    transform: scale(1.05); /* Slightly enlarge the card on hover */
+  }
+
+  .image-frame {
+    width: 100%; /* Full width of the card */
+    height: 60%; /* Fixed height for the image frame */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.1); /* Light gray background for the frame */
+    overflow: hidden; /* Ensure the image doesn't overflow */
+    position: relative;
+
+    img {
+      width: 100%; /* Image takes full width of the frame */
+      height: 100%; /* Image takes full height of the frame */
+      object-fit: cover; /* Maintain aspect ratio and cover the frame */
+    }
+  }
+
+  mat-card-title{
+    text-align: center;
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+    color: $text;
+  }
+  mat-card-subtitle {
+    text-align: center;
+    font-size: 1rem;
+    margin: 0.5rem;
+    color: $text;
+  }
+}

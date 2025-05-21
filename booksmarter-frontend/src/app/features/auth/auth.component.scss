@@ -1,0 +1,86 @@
+@use '@angular/material' as mat;
+@use '../../../styles/variables' as var;
+@use '../../../styles/mixins' as *;
+
+.auth-card {
+  max-width: 600px;
+  margin: 4rem auto;
+  background: var.$background;
+  border-radius: 12px;
+  padding: 1.5rem;
+
+  .mat-tab-group {
+    margin-bottom: 1rem;
+  }
+
+  .full-width {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .toggle-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+
+    mat-button-toggle-group {
+      background: var.$background;
+      border-radius: 2rem;
+      padding: 0.25rem;
+
+      mat-button-toggle {
+        @include button;
+        border-radius: 2rem;
+        flex: 1;
+        text-transform: none;
+      }
+    }
+  }
+
+  .menu-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+
+    button {
+      @include button;
+      text-transform: none;
+      font-size: 1rem;
+    }
+  }
+
+  .actions {
+    text-align: center;
+    margin-top: 0.5rem;
+
+    button {
+      @include button;
+      padding: 0.75rem 2rem;
+      border-radius: 2rem;
+      font-size: 1rem;
+    }
+  }
+
+  .error {
+    color: red;
+    text-align: center;
+    margin-top: 1rem;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  .form-label {
+    display: block;
+    margin: 1rem;
+  }
+
+  .radio-group {
+    display: flex;
+    gap: 1rem;
+  }
+}

@@ -1,0 +1,62 @@
+# === Node.js ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnpm-debug.log*
+
+# === Environment variables ===
+.env
+.env.* # for multiple environments like .env.production
+
+# === Logs ===
+logs/
+*.log
+*.log.*
+
+# === OS-specific ===
+.DS_Store
+Thumbs.db
+
+# === Editor folders ===
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# === Build artifacts ===
+dist/
+build/
+tmp/
+temp/
+
+# === TypeScript ===
+*.tsbuildinfo
+
+# === Angular (optional frontend part) ===
+/angular.json
+/.angular
+/.angular/cache/
+/.booksmarter-frontend/node_modules/
+/booksmarter-frontend/dist/
+/booksmarter-frontend/.angular/cache/
+
+# === Coverage ===
+coverage/
+
+# === Git ===
+*.orig
+
+# === Mac/Linux/Windows temp files ===
+*.swp
+*.bak
+*.tmp
+~$*
+
+# === Misc ===
+*.tgz
+*.gz
+*.zip

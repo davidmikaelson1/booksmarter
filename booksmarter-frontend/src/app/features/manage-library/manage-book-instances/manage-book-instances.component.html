@@ -1,0 +1,77 @@
+<mat-card class="card">
+  <mat-card-title class="card-title">Terminal inventory</mat-card-title>
+
+  <div class="toolbar">
+    <mat-form-field appearance="outline">
+      <mat-label>Select Terminal</mat-label>
+      <mat-select [(ngModel)]="selectedTerminalId" (selectionChange)="onTerminalChange()">
+        <mat-option *ngFor="let terminal of terminals" [value]="terminal.terminalId">
+          {{terminal.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    @if (selectedTerminalId) {
+      <button mat-raised-button (click)="openAddBookInstanceDialog()">
+        Add Book to Collection
+      </button>
+    }
+  </div>
+
+  @if (selectedTerminalId) {
+    <table mat-table [dataSource]="bookInstances">
+      <!-- Title Column -->
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef> Title </th>
+        <td mat-cell *matCellDef="let book"> {{book.title}} </td>
+      </ng-container>
+
+      <!-- Author Column -->
+      <ng-container matColumnDef="author">
+        <th mat-header-cell *matHeaderCellDef> Author </th>
+        <td mat-cell *matCellDef="let book"> {{book.author}} </td>
+      </ng-container>
+
+      <!-- Genre Column -->
+      <ng-container matColumnDef="genre">
+        <th mat-header-cell *matHeaderCellDef> Genre </th>
+        <td mat-cell *matCellDef="let book"> {{book.genre}} </td>
+      </ng-container>
+
+      <!-- Available Copies Column -->
+      <ng-container matColumnDef="availableCopies">
+        <th mat-header-cell *matHeaderCellDef> Available </th>
+        <td mat-cell *matCellDef="let book"> {{book.instance.availableCopies}} </td>
+      </ng-container>
+
+      <!-- Total Copies Column -->
+      <ng-container matColumnDef="totalCopies">
+        <th mat-header-cell *matHeaderCellDef> Total </th>
+        <td mat-cell *matCellDef="let book"> {{book.instance.totalCopies}} </td>
+      </ng-container>
+
+      <!-- Edit Column -->
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef> Edit </th>
+        <td mat-cell *matCellDef="let book">
+          <button mat-icon-button (click)="editInstance(book)">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <!-- Delete Column -->
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef> Delete </th>
+        <td mat-cell *matCellDef="let book">
+          <button mat-icon-button (click)="deleteInstance(book)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="instanceColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: instanceColumns;"></tr>
+    </table>
+  }
+</mat-card>

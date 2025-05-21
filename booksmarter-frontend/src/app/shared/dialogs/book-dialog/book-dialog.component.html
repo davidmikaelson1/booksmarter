@@ -1,0 +1,43 @@
+<div class="book-dialog">
+  <button mat-icon-button class="close-button" (click)="closeDialog()">
+    <mat-icon>close</mat-icon>
+  </button>
+  <div class="dialog-content">
+    <div class="image-frame">
+      <img [src]="book.coverUrl || 'assets/placeholder.jpg'" alt="{{ book.title }}" />
+    </div>
+    <div class="book-details">
+      <h2>{{ book.title }}</h2>
+      <p><strong>Author:</strong> {{ book.author }}</p>
+      <p><strong>Genre:</strong> {{ book.genre }}</p>
+
+      <!-- Availability information section -->
+      <div *ngIf="instance" class="availability-info">
+        <p>
+          <strong>Available:</strong>
+          <span [class.unavailable]="!hasAvailableCopies">
+            {{ hasAvailableCopies ? 'Yes' : 'No' }}
+          </span>
+        </p>
+        <p class="copies-text">
+          <span [class.warning]="availableCopies < 3">
+            {{ availableCopies }} {{ availableCopies === 1 ? 'copy' : 'copies' }} left
+          </span>
+          <span class="total-copies">(of {{ totalCopies }} total)</span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="dialog-actions">
+    <button mat-raised-button
+            color="primary"
+            [disabled]="isRenting || (instance && !hasAvailableCopies) || authService.currentUserValue?.userType === 'librarian'"
+            (click)="rentBook()">
+      <mat-icon>shopping_cart</mat-icon>
+      {{ isRenting ? 'Processing...' : 'Rent' }}
+    </button>
+    <div *ngIf="authService.currentUserValue?.userType === 'librarian'" class="librarian-message">
+      <small>Librarians cannot rent books</small>
+    </div>
+  </div>
+</div>

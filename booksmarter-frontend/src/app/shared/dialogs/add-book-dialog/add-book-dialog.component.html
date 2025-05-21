@@ -1,0 +1,39 @@
+<div class="add-book-dialog">
+  <div class="title">Add a New Book</div>
+  <button mat-icon-button class="close-button" (click)="closeDialog()">
+    <mat-icon>close</mat-icon>
+  </button>
+  <div class="dialog-content">
+    <form [formGroup]="bookForm" (ngSubmit)="submitBook()">
+      <mat-form-field appearance="outline">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" placeholder="Enter book title" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Author</mat-label>
+        <input matInput formControlName="author" placeholder="Enter author name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Genre</mat-label>
+        <mat-select formControlName="genre" placeholder="Select book genre">
+          <mat-option *ngFor="let genre of genres" [value]="genre">
+            {{ genre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Cover URL</mat-label>
+        <input matInput formControlName="coverUrl" placeholder="Enter cover image URL" />
+      </mat-form-field>
+
+      <div class="dialog-actions">
+        <button mat-raised-button type="submit" [disabled]="bookForm.invalid">
+          Add Book
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,67 @@
+@use '../../../styles/variables' as *;
+
+.carousel-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  max-width: 70rem;
+  margin: 0 auto;
+
+  .carousel-header {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: $text;
+  }
+
+  .carousel-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 70rem;
+    width: 100%;
+    gap: 1rem;
+  }
+}
+
+.carousel-button {
+  background-color: $background;
+  color: $text;
+  border: none;
+  width: 3rem;
+  height: 100%;
+  height: 20rem;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: scale(1.1);
+  }
+}
+
+.book-grid {
+  display: flex;
+  align-items: center;
+  overflow:visible;
+  flex: 1;
+  gap: 1rem;
+}
+
+.book-wrapper {
+  flex: 0 0 calc(33.33% - 1rem);
+  transition: transform 0.5s ease-in-out;
+}
+
+.no-books-message {
+  font-size: 1.2rem;
+  color: $text;
+  text-align: center;
+  margin: 2rem 0;
+}

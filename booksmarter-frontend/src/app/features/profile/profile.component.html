@@ -1,0 +1,26 @@
+<div class="profile">
+  <app-toolbar></app-toolbar>
+<div class="profile-container">
+  <!-- User Section -->
+  <mat-card class="profile-card user-info">
+    <mat-card-title class="card-title">Your profile</mat-card-title>
+    <ul class="profile-data">
+      <li>Name: {{ user?.name }}</li>
+      <li>Email: {{ user?.email }}</li>
+      <li>Terminal id: {{ user?.terminalId }}</li>
+      </ul>
+  </mat-card>
+
+  <!-- Active Section -->
+
+  <mat-card class="profile-card logout-section">
+    <mat-card-title class="card-title">Actions</mat-card-title>
+    <button mat-raised-button (click)="logout()">Log Out</button>
+    <button *ngIf="user?.userType === 'librarian'" mat-raised-button (click)="manageLibrary()">
+      Manage Library
+    </button>
+  </mat-card>
+</div>
+<app-footer></app-footer>
+
+</div>

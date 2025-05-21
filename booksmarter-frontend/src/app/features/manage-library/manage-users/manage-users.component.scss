@@ -1,0 +1,77 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  padding: 2rem;
+  background-color: $background;
+  width: 100%;
+
+  .card-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    color: $text;
+
+    th {
+      text-align: left;
+      padding: 0.5rem;
+      background-color: $background;
+    }
+
+    td {
+      padding: 0.5rem;
+      background-color: $background;
+      color: $text;
+    }
+
+    mat-icon {
+      cursor: pointer;
+    }
+  }
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  background-color: transparent;
+  width: 100%;
+  gap: 1rem;
+
+  .filter-search {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width:100%;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    background-color: $background;
+
+    .search-input {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      font-size: 1rem;
+    width:100%;
+
+      border: none;
+      outline: none;
+      padding: 0.5rem;
+      color: #2e2626;
+      background: transparent;
+    }
+  }
+}
+
+button {
+  @include button();
+}

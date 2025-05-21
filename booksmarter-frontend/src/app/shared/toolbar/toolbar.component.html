@@ -1,0 +1,17 @@
+<mat-toolbar class="toolbar">
+  <img class="toolbar-logo" src="/assets/logo.png?v=1" alt="Logo" />
+  <div class="toolbar-actions">
+    <button class="toolbar-button" mat-raised-button routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</button>
+    <button class="toolbar-button" mat-raised-button routerLink="/discover" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Discover</button>
+    <button class="toolbar-button" mat-raised-button routerLink="/my-books" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">My Books</button>
+    <mat-card class="toolbar-search-container">
+      <input class="toolbar-search-field" type="text" placeholder="Search" />
+      <button mat-icon-button class="toolbar-button" >
+        <mat-icon>search</mat-icon>
+      </button>
+    </mat-card>
+    <button class="toolbar-button" mat-icon-button routerLink="/profile" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+  </div>
+</mat-toolbar>

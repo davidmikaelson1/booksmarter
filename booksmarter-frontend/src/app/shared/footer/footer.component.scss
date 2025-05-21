@@ -1,0 +1,22 @@
+@use '../../../styles/variables' as *;
+
+.app-footer {
+  background-color: $background;
+  color: $text;
+  padding: 16px;
+  text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: auto;
+
+  nav {
+    margin-top: 8px;
+    a {
+      margin: 0 8px;
+      color: $primary;
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
