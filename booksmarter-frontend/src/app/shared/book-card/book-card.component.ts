@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Book } from '../../models/book.model';
 import { BookDialogComponent } from '../dialogs/book-dialog/book-dialog.component';
 import { BookWithInstance } from '../../services/book.service';
+import { ImagePathService } from '../../services/image-path.service';
 
 @Component({
   selector: 'app-book-card',
@@ -17,7 +18,10 @@ export class BookCardComponent {
   @Input() book?: Book; // Keep for backward compatibility
   @Input() bookWithInstance?: BookWithInstance;
 
-  constructor(private dialog: MatDialog) {}
+  constructor(
+    private dialog: MatDialog,
+    private imagePathService: ImagePathService
+  ) {}
 
   openDialog(): void {
     // Use bookWithInstance if available, otherwise use book
@@ -29,5 +33,10 @@ export class BookCardComponent {
         width: '600px',
       });
     }
+  }
+
+  // Update method to use service
+  getCoverImagePath(coverUrl: string | undefined): string {
+    return this.imagePathService.getCoverImagePath(coverUrl);
   }
 }

@@ -3,13 +3,35 @@
   <div class="toolbar-actions">
     <button class="toolbar-button" mat-raised-button routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</button>
     <button class="toolbar-button" mat-raised-button routerLink="/discover" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Discover</button>
-    <button class="toolbar-button" mat-raised-button routerLink="/my-books" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">My Books</button>
+
+    <!-- Show "My Books" only for non-librarians -->
+    <button *ngIf="isAuthenticated && !isLibrarian"
+            class="toolbar-button"
+            mat-raised-button
+            routerLink="/my-books"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }">
+      My Books
+    </button>
+
+    <!-- Show "Manage Library" for librarians -->
+    <button *ngIf="isAuthenticated && isLibrarian"
+            class="toolbar-button"
+            mat-raised-button
+            routerLink="/manage-library"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }">
+      Manage Library
+    </button>
+
     <mat-card class="toolbar-search-container">
       <input class="toolbar-search-field" type="text" placeholder="Search" />
-      <button mat-icon-button class="toolbar-button" >
+      <button mat-icon-button class="toolbar-button">
         <mat-icon>search</mat-icon>
       </button>
     </mat-card>
+
+    <!-- Always show profile icon, regardless of authentication status -->
     <button class="toolbar-button" mat-icon-button routerLink="/profile" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       <mat-icon>account_circle</mat-icon>
     </button>

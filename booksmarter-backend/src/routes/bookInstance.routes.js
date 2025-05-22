@@ -15,5 +15,7 @@ router.patch('/:id', BookInstanceController.updateBookInstance);
 // Delete instance
 router.delete('/:id', BookInstanceController.deleteBookInstance);
 
+// Get instances by IDs
+router.post('/batch', BookInstanceController.getInstancesByIds);
 
 module.exports = router;

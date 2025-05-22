@@ -12,7 +12,9 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { OrderService, PendingOrder, OrderAuthorization, OrderWithDetails } from '../../../services/order.service';
 import { SnackbarService } from '../../../services/snackbar.service';
+import { AuthService } from '../../../services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
+import { ImagePathService } from '../../../services/image-path.service';
 
 @Component({
   selector: 'app-manage-orders',
@@ -36,42 +38,57 @@ import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/c
 export class ManageOrdersComponent implements OnInit {
   pendingRentals: PendingOrder[] = [];
   pendingReturns: PendingOrder[] = [];
-  allOrders: OrderWithDetails[] = []; // New property for all orders
+  allOrders: OrderWithDetails[] = [];
   selectedTabIndex = 0;
   loadingRentals = false;
   loadingReturns = false;
-  loadingAllOrders = false; // New loading state
+  loadingAllOrders = false;
+  currentTerminalId = 1; // Default, should be set from auth service
+  currentLibrarianId = 1; // Default, should be set from auth service
 
   // Define columns for both tables
   rentalColumns: string[] = ['title', 'reader', 'requestDate', 'actions'];
   returnColumns: string[] = ['title', 'reader', 'requestDate', 'actions'];
-  // Define columns for all orders table
   allOrdersColumns: string[] = ['title', 'reader', 'status', 'rentDate', 'returnDate', 'returnDeadline'];
 
   constructor(
     private orderService: OrderService,
     private snackbarService: SnackbarService,
-    private dialog: MatDialog
+    private authService: AuthService,
+    private dialog: MatDialog,
+    private imagePathService: ImagePathService
   ) {}
 
   ngOnInit(): void {
-    this.loadPendingRentals();
-    this.loadPendingReturns();
-    this.loadAllOrders(); // Add this new method call
+    // Get terminal and librarian ID from auth service
+    this.authService.currentUser.subscribe(user => {
+      if (user && user.terminalId) {
+        this.currentTerminalId = user.terminalId;
+        this.currentLibrarianId = user.userId;
+
+        this.loadPendingRentals();
+        this.loadPendingReturns();
+        this.loadAllOrders();
+      } else {
+        this.snackbarService.open('You must be logged in as a librarian to view this page', 'Close');
+      }
+    });
   }
 
   onTabChange(event: any): void {
     this.selectedTabIndex = event.index;
     if (event.index === 0) {
       this.loadPendingRentals();
-    } else {
+    } else if (event.index === 1) {
       this.loadPendingReturns();
+    } else {
+      this.loadAllOrders();
     }
   }
 
   loadPendingRentals(): void {
     this.loadingRentals = true;
-    this.orderService.getPendingRentals().subscribe({
+    this.orderService.getPendingRentals(this.currentTerminalId).subscribe({
       next: (rentals) => {
         this.pendingRentals = rentals;
         this.loadingRentals = false;
@@ -86,7 +103,7 @@ export class ManageOrdersComponent implements OnInit {
 
   loadPendingReturns(): void {
     this.loadingReturns = true;
-    this.orderService.getPendingReturns().subscribe({
+    this.orderService.getPendingReturns(this.currentTerminalId).subscribe({
       next: (returns) => {
         this.pendingReturns = returns;
         this.loadingReturns = false;
@@ -99,7 +116,6 @@ export class ManageOrdersComponent implements OnInit {
     });
   }
 
-  // Add this new method to fetch all orders
   loadAllOrders(): void {
     this.loadingAllOrders = true;
     this.orderService.getAllOrders().subscribe({
@@ -127,7 +143,7 @@ export class ManageOrdersComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.processRentalApproval(rental.rentId, true);
+        this.processRentalApproval(rental.rentId);
       }
     });
   }
@@ -145,7 +161,7 @@ export class ManageOrdersComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.processRentalApproval(rental.rentId, false, result.notes);
+        this.processRentalDenial(rental.rentId, result.notes);
       }
     });
   }
@@ -156,13 +172,15 @@ export class ManageOrdersComponent implements OnInit {
       data: {
         title: 'Approve Return',
         message: `Are you sure you want to approve the return of "${returnItem.bookTitle}" from ${returnItem.readerName}?`,
+        prompt: true,
+        promptLabel: 'Return Notes (optional)',
         confirmButton: 'Approve'
       }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.processReturnApproval(returnItem.rentId, true);
+        this.processReturnApproval(returnItem.rentId, result.notes);
       }
     });
   }
@@ -174,24 +192,17 @@ export class ManageOrdersComponent implements OnInit {
         title: 'Deny Return',
         message: `Are you sure you want to deny the return of "${returnItem.bookTitle}" from ${returnItem.readerName}?`,
         prompt: true,
-        penalty: true,
         confirmButton: 'Deny'
       }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.processReturnApproval(
-          returnItem.rentId,
-          false,
-          result.notes,
-          result.penalty
-        );
+        this.processReturnDenial(returnItem.rentId, result.notes);
       }
     });
   }
 
-  // Helper method to display the status in a readable format
   getStatusDisplay(status: string): string {
     switch (status) {
       case 'ACTIVE': return 'Active';
@@ -203,61 +214,81 @@ export class ManageOrdersComponent implements OnInit {
     }
   }
 
-  // When actions are performed, refresh all related data
   refreshAllData(): void {
     this.loadPendingRentals();
     this.loadPendingReturns();
     this.loadAllOrders();
   }
 
-  private processRentalApproval(rentId: number, approved: boolean, notes?: string): void {
+  private processRentalApproval(rentId: number): void {
     this.loadingRentals = true;
 
-    const authorization: OrderAuthorization = {
-      approved,
-      notes
-    };
-
-    this.orderService.approveRental(rentId, authorization).subscribe({
+    this.orderService.approveRental(rentId, this.currentLibrarianId).subscribe({
       next: () => {
         this.loadingRentals = false;
-        const message = approved
-          ? 'Rental approved successfully'
-          : 'Rental denied successfully';
-        this.snackbarService.open(message, 'Close');
-        this.refreshAllData(); // Replace loadPendingRentals with refreshAllData
+        this.snackbarService.open('Rental approved successfully', 'Close', 3000);
+        this.refreshAllData();
       },
       error: (error) => {
         console.error('Error processing rental approval:', error);
         this.loadingRentals = false;
-        this.snackbarService.open(error.message || 'Failed to process rental', 'Close');
+        this.snackbarService.open(error.message || 'Failed to approve rental', 'Close');
       }
     });
   }
 
-  private processReturnApproval(rentId: number, approved: boolean, notes?: string, penalty?: number): void {
+  private processRentalDenial(rentId: number, reason: string): void {
+    this.loadingRentals = true;
+
+    this.orderService.denyRental(rentId, this.currentLibrarianId, reason).subscribe({
+      next: () => {
+        this.loadingRentals = false;
+        this.snackbarService.open('Rental denied successfully', 'Close', 3000);
+        this.refreshAllData();
+      },
+      error: (error) => {
+        console.error('Error processing rental denial:', error);
+        this.loadingRentals = false;
+        this.snackbarService.open(error.message || 'Failed to deny rental', 'Close');
+      }
+    });
+  }
+
+  private processReturnApproval(rentId: number, notes: string): void {
     this.loadingReturns = true;
 
-    const authorization: OrderAuthorization = {
-      approved,
-      notes,
-      penalty
-    };
-
-    this.orderService.authorizeReturn(rentId, authorization).subscribe({
+    this.orderService.approveReturn(rentId, this.currentLibrarianId, notes).subscribe({
       next: () => {
         this.loadingReturns = false;
-        const message = approved
-          ? 'Return approved successfully'
-          : 'Return denied successfully';
-        this.snackbarService.open(message, 'Close');
-        this.refreshAllData(); // Replace loadPendingReturns with refreshAllData
+        this.snackbarService.open('Return approved successfully', 'Close', 3000);
+        this.refreshAllData();
       },
       error: (error) => {
         console.error('Error processing return approval:', error);
         this.loadingReturns = false;
-        this.snackbarService.open(error.message || 'Failed to process return', 'Close');
+        this.snackbarService.open(error.message || 'Failed to approve return', 'Close');
       }
     });
+  }
+
+  private processReturnDenial(rentId: number, reason: string): void {
+    this.loadingReturns = true;
+
+    this.orderService.denyRental(rentId, this.currentLibrarianId, reason).subscribe({
+      next: () => {
+        this.loadingReturns = false;
+        this.snackbarService.open('Return denied successfully', 'Close', 3000);
+        this.refreshAllData();
+      },
+      error: (error) => {
+        console.error('Error processing return denial:', error);
+        this.loadingReturns = false;
+        this.snackbarService.open(error.message || 'Failed to deny return', 'Close');
+      }
+    });
+  }
+
+  getCoverImagePath(coverUrl: string | undefined): string {
+    return this.imagePathService.getCoverImagePath(coverUrl);
   }
 }

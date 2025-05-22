@@ -1,337 +1,194 @@
-const pool = require('../connection');
 const Order = require('../models/order.model');
+const pool = require('../connection');
 
 class OrderRepository {
-  static async findAll() {
-    const query = 'SELECT * FROM `Order`';
+  create(order) {
     return new Promise((resolve, reject) => {
-      pool.query(query, (err, results) => {
+      const query = `
+        INSERT INTO \`Order\` 
+        (rentedBookId, rentDate, returnDeadline, readerId, status, librarianId) 
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+      
+      pool.query(query, [
+        order.instanceId,
+        order.rentDate,
+        order.returnDeadline,
+        order.readerId,
+        order.status,
+        order.librarianId
+      ], (err, result) => {
         if (err) return reject(err);
-        resolve(results.map(Order.fromDatabase));
+        resolve(result.insertId);
       });
     });
   }
 
-  static async findById(rentId) {
-    const query = 'SELECT * FROM `Order` WHERE rentId = ?';
+  getById(rentId) {
     return new Promise((resolve, reject) => {
-      pool.query(query, [rentId], (err, results) => {
+      const query = `SELECT * FROM \`Order\` WHERE rentId = ?`;
+      
+      pool.query(query, [rentId], (err, rows) => {
         if (err) return reject(err);
-        resolve(results.length > 0 ? Order.fromDatabase(results[0]) : null);
+        if (rows.length === 0) return resolve(null);
+        resolve(Order.fromDatabase(rows[0]));
       });
     });
   }
 
-  static async createOrder(order) {
-    const query = `
-      INSERT INTO \`Order\` (readerId, rentedBookId, rentDate, returnDeadline, status)
-      VALUES (?, ?, ?, ?, ?)
-    `;
+  getOrdersByReaderId(readerId, status = null) {
     return new Promise((resolve, reject) => {
-      pool.query(
-        query,
-        [order.readerId, order.instanceId, order.rentDate, order.returnDeadline, order.status],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results.insertId);
-        }
-      );
-    });
-  }
+      let query = `
+        SELECT o.*, bi.bookId, b.title as bookTitle, b.coverUrl
+        FROM \`Order\` o
+        JOIN BookInstance bi ON o.rentedBookId = bi.instanceId
+        JOIN Book b ON bi.bookId = b.bookId
+        WHERE o.readerId = ?
+      `;
+      const params = [readerId];
 
-  static async updateOrder(rentId, order) {
-    const query = `
-      UPDATE \`Order\`
-      SET readerId = ?, rentedBookId = ?, rentDate = ?, returnDeadline = ?, 
-          returnDate = ?, status = ?, returnNotes = ?, librarianId = ?
-      WHERE rentId = ?
-    `;
-    return new Promise((resolve, reject) => {
-      pool.query(
-        query,
-        [
-          order.readerId, 
-          order.instanceId, 
-          order.rentDate, 
-          order.returnDeadline, 
-          order.returnDate,
-          order.status,
-          order.returnNotes,
-          order.librarianId,
-          rentId
-        ],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results.affectedRows > 0);
+      if (status) {
+        if (Array.isArray(status)) {
+          query += ` AND o.status IN (?)`;
+          params.push(status);
+        } else {
+          query += ` AND o.status = ?`;
+          params.push(status);
         }
-      );
-    });
-  }
+      }
 
-  static async deleteOrder(rentId) {
-    const query = 'DELETE FROM `Order` WHERE rentId = ?';
-    return new Promise((resolve, reject) => {
-      pool.query(query, [rentId], (err, results) => {
+      pool.query(query, params, (err, rows) => {
         if (err) return reject(err);
-        resolve(results.affectedRows > 0);
+        resolve(rows.map(row => {
+          const order = Order.fromDatabase(row);
+          order.bookId = row.bookId; // optional, for completeness
+          order.bookTitle = row.bookTitle;
+          order.coverUrl = row.coverUrl;
+          return order;
+        }));
+      });
+    });
+  }
+  
+  updateStatus(rentId, status, librarianId = null, returnNotes = null, returnDate = null) {
+    return new Promise((resolve, reject) => {
+      let query = `UPDATE \`Order\` SET status = ?`;
+      const params = [status];
+      
+      if (librarianId !== null) {
+        query += `, librarianId = ?`;
+        params.push(librarianId);
+      }
+      
+      if (returnNotes !== null) {
+        query += `, returnNotes = ?`;
+        params.push(returnNotes);
+      }
+      
+      if (returnDate !== null) {
+        query += `, returnDate = ?`;
+        params.push(returnDate);
+      }
+      
+      query += ` WHERE rentId = ?`;
+      params.push(rentId);
+      
+      pool.query(query, params, (err, result) => {
+        if (err) return reject(err);
+        resolve(result.affectedRows > 0);
+      });
+    });
+  }
+  
+  delete(rentId) {
+    return new Promise((resolve, reject) => {
+      const query = `DELETE FROM \`Order\` WHERE rentId = ?`;
+      
+      pool.query(query, [rentId], (err, result) => {
+        if (err) return reject(err);
+        resolve(result.affectedRows > 0);
+      });
+    });
+  }
+  
+  getOrdersForLibrarian(terminalId, status = null) {
+    return new Promise((resolve, reject) => {
+      let query = `
+        SELECT o.*, u.name as readerName, b.title as bookTitle, b.author as bookAuthor
+        FROM \`Order\` o
+        JOIN Reader r ON o.readerId = r.userId
+        JOIN LibraryUser u ON r.userId = u.userId
+        JOIN BookInstance bi ON o.rentedBookId = bi.instanceId
+        JOIN Book b ON bi.bookId = b.bookId
+        WHERE u.terminalId = ?
+      `;
+      
+      const params = [terminalId];
+      
+      if (status) {
+        if (Array.isArray(status)) {
+          query += ` AND o.status IN (?)`;
+          params.push(status);
+        } else {
+          query += ` AND o.status = ?`;
+          params.push(status);
+        }
+      }
+      
+      pool.query(query, params, (err, rows) => {
+        if (err) return reject(err);
+        
+        resolve(rows.map(row => {
+          const order = Order.fromDatabase(row);
+          order.readerName = row.readerName;
+          order.bookTitle = row.bookTitle;
+          order.bookAuthor = row.bookAuthor;
+          return order;
+        }));
+      });
+    });
+  }
+  
+  updateBookAvailability(instanceId, increment) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE BookInstance 
+        SET availableCopies = availableCopies + ? 
+        WHERE instanceId = ?
+      `;
+      
+      pool.query(query, [increment, instanceId], (err, result) => {
+        if (err) return reject(err);
+        resolve(result.affectedRows > 0);
       });
     });
   }
 
-  static async findAllByReader(readerId) {
-    const query = 'SELECT * FROM `Order` WHERE readerId = ?';
+  getAll() {
     return new Promise((resolve, reject) => {
-      pool.query(query, [readerId], (err, results) => {
+      const query = `
+        SELECT o.*, u.name as readerName, b.title as bookTitle, b.author as bookAuthor, b.coverUrl
+        FROM \`Order\` o
+        JOIN Reader r ON o.readerId = r.userId
+        JOIN LibraryUser u ON r.userId = u.userId
+        JOIN BookInstance bi ON o.rentedBookId = bi.instanceId
+        JOIN Book b ON bi.bookId = b.bookId
+      `;
+      
+      pool.query(query, (err, rows) => {
         if (err) return reject(err);
-        resolve(results.map(Order.fromDatabase));
-      });
-    });
-  }
-
-  static async updateOrderStatus(rentId, status) {
-    const query = 'UPDATE `Order` SET status = ? WHERE rentId = ?';
-    return new Promise((resolve, reject) => {
-      pool.query(query, [status, rentId], (err, results) => {
-        if (err) return reject(err);
-        resolve(results.affectedRows > 0);
-      });
-    });
-  }
-
-  /**
-   * Get book instance data for rental
-   */
-  static async getBookInstanceForRental(instanceId) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        'SELECT bi.*, b.title, b.author, b.genre, b.coverUrl FROM BookInstance bi ' +
-        'JOIN Book b ON bi.bookId = b.bookId ' +
-        'WHERE bi.instanceId = ?',
-        [instanceId],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results[0]);
-        }
-      );
-    });
-  }
-
-  /**
-   * Count pending rental requests for a book instance
-   */
-  static async countPendingRequests(instanceId) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        'SELECT COUNT(*) as count FROM `Order` WHERE rentedBookId = ? AND status = "PENDING_APPROVAL"',
-        [instanceId],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results[0].count);
-        }
-      );
-    });
-  }
-
-  /**
-   * Create a rental request
-   */
-  static async createRentalRequest(readerId, instanceId, rentDate, returnDeadline, status) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        'INSERT INTO `Order` (readerId, rentedBookId, rentDate, returnDeadline, status) VALUES (?, ?, ?, ?, ?)',
-        [readerId, instanceId, rentDate, returnDeadline, status],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results.insertId);
-        }
-      );
-    });
-  }
-
-  /**
-   * Get order with book instance data
-   */
-  static async getOrderWithInstanceData(rentId) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        'SELECT o.*, bi.collectionId, bi.availableCopies FROM `Order` o ' +
-        'JOIN BookInstance bi ON o.rentedBookId = bi.instanceId ' +
-        'WHERE o.rentId = ?',
-        [rentId],
-        (err, results) => {
-          if (err) return reject(err);
-          if (results.length === 0) {
-            return reject(new Error('Order not found'));
-          }
-          resolve(results[0]);
-        }
-      );
-    });
-  }
-
-  /**
-   * Update order status and notes by librarian
-   */
-  static async updateOrderStatusByLibrarian(rentId, status, notes, librarianId) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        'UPDATE `Order` SET status = ?, returnNotes = ?, librarianId = ? WHERE rentId = ?',
-        [status, notes, librarianId, rentId],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results.affectedRows > 0);
-        }
-      );
-    });
-  }
-
-  /**
-   * Update book instance availability
-   */
-  static async updateBookInstanceAvailability(instanceId, increment) {
-    const operation = increment ? '+' : '-';
-    return new Promise((resolve, reject) => {
-      pool.query(
-        `UPDATE BookInstance SET availableCopies = availableCopies ${operation} 1 WHERE instanceId = ?`,
-        [instanceId],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results.affectedRows > 0);
-        }
-      );
-    });
-  }
-
-  /**
-   * Update collection rental count
-   */
-  static async updateCollectionRentalCount(collectionId, increment) {
-    const operation = increment ? '-' : '+';
-    return new Promise((resolve, reject) => {
-      pool.query(
-        `UPDATE BookCollection SET totalRentedBooks = totalRentedBooks ${operation} 1 WHERE collectionId = ?`,
-        [collectionId],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results.affectedRows > 0);
-        }
-      );
-    });
-  }
-
-  /**
-   * Record penalty for late/damaged return
-   */
-  static async recordPenalty(rentId, amount, reason) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        'INSERT INTO Penalty (rentId, amount, reason) VALUES (?, ?, ?)',
-        [rentId, amount, reason],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results.insertId);
-        }
-      );
-    });
-  }
-
-  /**
-   * Get pending rental requests for a terminal
-   */
-  static async getPendingRentalRequests(terminalId) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        `SELECT o.*, b.bookId, b.title, b.author, b.genre, b.coverUrl, u.name as readerName
-         FROM \`Order\` o
-         JOIN BookInstance bi ON o.rentedBookId = bi.instanceId
-         JOIN BookCollection bc ON bi.collectionId = bc.collectionId
-         JOIN Book b ON bi.bookId = b.bookId
-         JOIN LibraryUser u ON o.readerId = u.userId
-         WHERE bc.terminalId = ? AND o.status = 'PENDING_APPROVAL'
-         ORDER BY o.rentDate ASC`,
-        [terminalId],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results);
-        }
-      );
-    });
-  }
-
-  /**
-   * Get reader's active rentals
-   */
-  static async getReaderRentedBooks(readerId) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        `SELECT o.*, b.bookId, b.title, b.author, b.genre, b.coverUrl
-         FROM \`Order\` o
-         JOIN BookInstance bi ON o.rentedBookId = bi.instanceId
-         JOIN Book b ON bi.bookId = b.bookId
-         WHERE o.readerId = ? AND o.status IN ('ACTIVE', 'PENDING_RETURN')
-         ORDER BY o.rentDate DESC`,
-        [readerId],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results);
-        }
-      );
-    });
-  }
-
-  /**
-   * Get pending returns for a terminal
-   */
-  static async getPendingReturns(terminalId) {
-    return new Promise((resolve, reject) => {
-      pool.query(
-        `SELECT o.*, b.bookId, b.title, b.author, b.genre, b.coverUrl, u.name as readerName
-         FROM \`Order\` o
-         JOIN BookInstance bi ON o.rentedBookId = bi.instanceId
-         JOIN BookCollection bc ON bi.collectionId = bc.collectionId
-         JOIN Book b ON bi.bookId = b.bookId
-         JOIN LibraryUser u ON o.readerId = u.userId
-         WHERE bc.terminalId = ? AND o.status = 'PENDING_RETURN'
-         ORDER BY o.returnDate ASC`,
-        [terminalId],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results);
-        }
-      );
-    });
-  }
-
-  /**
-   * Find all orders for a reader, including history
-   */
-  static async findAllByReaderWithHistory(readerId) {
-    const query = `
-      SELECT o.*, b.title, b.author, b.genre, b.coverUrl,
-             bi.availableCopies, bi.totalCopies,
-             u.name as readerName
-      FROM \`Order\` o
-      JOIN BookInstance bi ON o.rentedBookId = bi.instanceId
-      JOIN Book b ON bi.bookId = b.bookId
-      JOIN LibraryUser u ON o.readerId = u.userId
-      WHERE o.readerId = ?
-      ORDER BY 
-        CASE
-          WHEN o.status = 'ACTIVE' THEN 1
-          WHEN o.status = 'PENDING_APPROVAL' THEN 2
-          WHEN o.status = 'PENDING_RETURN' THEN 3
-          ELSE 4
-        END,
-        o.rentDate DESC
-    `;
-    
-    return new Promise((resolve, reject) => {
-      pool.query(query, [readerId], (err, results) => {
-        if (err) return reject(err);
-        resolve(results);
+        
+        resolve(rows.map(row => {
+          const order = Order.fromDatabase(row);
+          order.readerName = row.readerName;
+          order.bookTitle = row.bookTitle;
+          order.bookAuthor = row.bookAuthor;
+          order.coverUrl = row.coverUrl;
+          return order;
+        }));
       });
     });
   }
 }
 
-module.exports = OrderRepository;
+module.exports = new OrderRepository();

@@ -11,6 +11,7 @@ import { SnackbarService } from '../../../services/snackbar.service';
 import { Router } from '@angular/router';
 import { BookWithInstance } from '../../../services/book.service';
 import { BookInstance } from '../../../models/book-instance.model';
+import { ImagePathService } from '../../../services/image-path.service';
 
 @Component({
   selector: 'app-book-dialog',
@@ -29,7 +30,8 @@ export class BookDialogComponent {
     private orderService: OrderService,
     protected authService: AuthService,
     private snackbarService: SnackbarService,
-    private router: Router
+    private router: Router,
+    private imagePathService: ImagePathService
   ) {}
 
   get book(): Book {
@@ -108,13 +110,20 @@ export class BookDialogComponent {
       return;
     }
 
-    // Get the terminal ID (default to 1 if not available)
-    const terminalId = 1; // Either hardcode or get from a service
+    // Calculate rental period (default 14 days)
+    const today = new Date();
+    const returnDate = new Date();
+    returnDate.setDate(today.getDate() + 14);
+
+    // Format dates for API
+    const rentDate = this.formatDate(today);
+    const returnDeadline = this.formatDate(returnDate);
 
     // Use instance ID if available
-    const bookId = this.instance ? this.instance.instanceId : this.book.bookId;
+    const instanceId = this.instance ? this.instance.instanceId : this.book.bookId;
 
-    this.orderService.rentBook(userId, bookId, terminalId).subscribe({
+    // Call the updated rentBook method with all required parameters
+    this.orderService.rentBook(userId, instanceId, rentDate, returnDeadline).subscribe({
       next: (response) => {
         this.isRenting = false;
 
@@ -134,5 +143,14 @@ export class BookDialogComponent {
         this.snackbarService.open(error.message || 'Failed to rent book', 'Close');
       }
     });
+  }
+
+  // Helper method to format date as YYYY-MM-DD
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  getCoverImagePath(coverUrl: string | undefined): string {
+    return this.imagePathService.getCoverImagePath(coverUrl);
   }
 }

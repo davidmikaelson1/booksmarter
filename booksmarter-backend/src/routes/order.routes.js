@@ -1,27 +1,26 @@
 const express = require('express');
-const OrderController = require('../controllers/order.controller');
-const authenticateToken = require('../middleware/auth.middleware');
-
+const orderController = require('../controllers/order.controller');
 const router = express.Router();
 
-// Apply auth middleware to all routes
-router.use(authenticateToken);
+// Reader order routes
+router.get('/', orderController.getAllOrders); // Add this line
+router.post('/', orderController.createOrder);
+router.get('/:id', orderController.getOrderById);
+router.get('/reader/:readerId', orderController.getReaderOrders);
+router.post('/:id/return', orderController.initiateReturn);
 
-// Existing routes
-router.get('/', OrderController.getAllOrders);
-router.get('/:id', OrderController.getOrderById);
-router.post('/', OrderController.createOrder);
-router.put('/:id', OrderController.updateOrder);
-router.delete('/:id', OrderController.deleteOrder);
+// Librarian order management routes
+router.put('/:id/approve', orderController.approveOrder);
+router.put('/:id/deny', orderController.denyOrder);
+router.delete('/:id', orderController.deleteOrder);
+router.put('/:id/return/approve', orderController.approveReturn);
 
-// Rental and Return routes
-router.post('/rent', OrderController.rentBook);
-router.get('/reader/:readerId', OrderController.getReaderRentedBooks);
-router.post('/:rentId/return', OrderController.initiateReturn);
-router.post('/:rentId/authorize-return', OrderController.authorizeReturn);
-router.post('/:rentId/authorize-rental', OrderController.approveRental); // New endpoint
-router.get('/pending/returns', OrderController.getPendingReturns);
-router.get('/pending/rentals', OrderController.getPendingRentals); // New endpoint
-router.put('/:rentId/complete', OrderController.markOrderCompleted); // Mark order as completed
+// Library terminal routes (for librarians)
+router.get('/terminal/:terminalId', orderController.getLibrarianOrders);
+router.get('/terminal/:terminalId/pending-approval', orderController.getPendingApprovalOrders);
+router.get('/terminal/:terminalId/pending-return', orderController.getPendingReturnOrders);
+
+// Add this route to your order routes
+router.get('/book-instances/:id/book', orderController.getBookForInstance);
 
 module.exports = router;

@@ -12,17 +12,16 @@ class Order {
   }
 
   static fromDatabase(row) {
-    return new Order(
-      row.rentId,
-      row.readerId,
-      row.rentedBookId, // Map from rentedBookId in DB to instanceId in model
-      row.rentDate,
-      row.returnDeadline,
-      row.returnDate,
-      row.status,
-      row.returnNotes,
-      row.librarianId
-    );
+    return {
+      rentId: row.rentId,
+      rentedBookId: row.rentedBookId, // <-- Make sure this is present!
+      rentDate: row.rentDate,
+      returnDeadline: row.returnDeadline,
+      returnDate: row.returnDate,
+      readerId: row.readerId,
+      status: row.status,
+      // ...any other fields
+    };
   }
 }
 

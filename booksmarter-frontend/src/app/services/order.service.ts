@@ -45,16 +45,11 @@ export interface OrderAuthorization {
 export class OrderService {
   private apiUrl = 'http://localhost:8080/api/orders';
   private authService=inject(AuthService);
+
   constructor(private http: HttpClient) { }
 
   // Get HTTP options with credentials
   private getHttpOptions() {
-    // Enhanced debugging
-    console.log('Getting HTTP options, auth state:', {
-      isAuthenticated: this.authService.isAuthenticated(),
-      user: this.authService.currentUserValue
-    });
-
     const options = {
       withCredentials: true,
       headers: new HttpHeaders({
@@ -90,17 +85,18 @@ export class OrderService {
   }
 
   /**
-   * Rent a book
+   * Rent a book (create rental request)
    */
-  rentBook(userId: number, bookId: number, terminalId: number = 1): Observable<Order> {
+  rentBook(readerId: number, instanceId: number, rentDate: string, returnDeadline: string): Observable<Order> {
     const payload = {
-      userId,
-      instanceId: bookId,
-      terminalId // Add terminalId to the payload
+      readerId,
+      instanceId,
+      rentDate,
+      returnDeadline
     };
 
     return this.http.post<Order>(
-      `${this.apiUrl}/rent`,
+      `${this.apiUrl}`,
       payload,
       this.getHttpOptions()
     ).pipe(catchError(this.handleError));
@@ -120,84 +116,76 @@ export class OrderService {
   /**
    * Get pending returns (librarian function)
    */
-  getPendingReturns(): Observable<PendingOrder[]> {
+  getPendingReturns(terminalId: number): Observable<PendingOrder[]> {
     return this.http.get<PendingOrder[]>(
-      `${this.apiUrl}/pending/returns`,
+      `${this.apiUrl}/terminal/${terminalId}/pending-return`,
       this.getHttpOptions()
     ).pipe(catchError(this.handleError));
   }
 
   /**
-   * Authorize or deny a return (librarian function)
+   * Get pending rentals (librarian function)
    */
-  authorizeReturn(rentId: number, authorization: OrderAuthorization): Observable<Order> {
-    return this.http.post<Order>(
-      `${this.apiUrl}/${rentId}/authorize-return`, // FIXED: Changed from /authorize to /authorize-return
-      authorization,
+  getPendingRentals(terminalId: number): Observable<PendingOrder[]> {
+    return this.http.get<PendingOrder[]>(
+      `${this.apiUrl}/terminal/${terminalId}/pending-approval`,
       this.getHttpOptions()
     ).pipe(catchError(this.handleError));
   }
 
   /**
-   * Create a new order (mostly used internally by rentBook)
+   * Approve rental request (librarian function)
    */
-  createOrder(order: Partial<Order>): Observable<Order> {
-    return this.http.post<Order>(
-      `${this.apiUrl}`,
-      order,
+  approveRental(rentId: number, librarianId: number): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/${rentId}/approve`,
+      { librarianId },
       this.getHttpOptions()
     ).pipe(catchError(this.handleError));
   }
 
   /**
-   * Update an order
+   * Deny rental request (librarian function)
    */
-  updateOrder(rentId: number, order: Partial<Order>): Observable<Order> {
-    return this.http.put<Order>(
-      `${this.apiUrl}/${rentId}`,
-      order,
+  denyRental(rentId: number, librarianId: number, reason: string = ''): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/${rentId}/deny`,
+      { librarianId, reason },
       this.getHttpOptions()
     ).pipe(catchError(this.handleError));
   }
 
   /**
-   * Delete an order (admin function)
+   * Approve return request (librarian function)
+   */
+  approveReturn(rentId: number, librarianId: number, returnNotes: string = ''): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/${rentId}/return/approve`,
+      { librarianId, returnNotes },
+      this.getHttpOptions()
+    ).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Delete an order (only denied orders can be deleted)
    */
   deleteOrder(rentId: number): Observable<void> {
+    const readerId = this.authService.currentUserValue?.userId;
     return this.http.delete<void>(
       `${this.apiUrl}/${rentId}`,
-      this.getHttpOptions()
+      {
+        ...this.getHttpOptions(),
+        body: { readerId }
+      }
     ).pipe(catchError(this.handleError));
   }
 
   /**
-   * Get pending rental requests (librarian function)
+   * Get book details for an order by book instance ID
    */
-  getPendingRentals(): Observable<PendingOrder[]> {
-    return this.http.get<PendingOrder[]>(
-      `${this.apiUrl}/pending/rentals`,
-      this.getHttpOptions()
-    ).pipe(catchError(this.handleError));
-  }
-
-  /**
-   * Approve or deny a rental request (librarian function)
-   */
-  approveRental(rentId: number, authorization: OrderAuthorization): Observable<Order> {
-    return this.http.post<Order>(
-      `${this.apiUrl}/${rentId}/authorize-rental`,
-      authorization,
-      this.getHttpOptions()
-    ).pipe(catchError(this.handleError));
-  }
-
-  /**
-   * Mark an order as completed instead of deleting it
-   */
-  markOrderCompleted(rentId: number): Observable<Order> {
-    return this.http.put<Order>(
-      `${this.apiUrl}/${rentId}/complete`,
-      {},
+  getBookDetailsForOrder(instanceId: number): Observable<Book> {
+    return this.http.get<Book>(
+      `${this.apiUrl}/book-instances/${instanceId}/book`,
       this.getHttpOptions()
     ).pipe(catchError(this.handleError));
   }
@@ -232,8 +220,8 @@ export class OrderService {
       errorMessage = `Error: ${error.error.message}`;
     } else {
       // Server-side error
-      if (typeof error.error === 'object' && error.error !== null && 'error' in error.error) {
-        errorMessage = error.error.error;
+      if (typeof error.error === 'object' && error.error !== null && 'message' in error.error) {
+        errorMessage = error.error.message;
       } else if (typeof error.error === 'string') {
         errorMessage = error.error;
       } else {

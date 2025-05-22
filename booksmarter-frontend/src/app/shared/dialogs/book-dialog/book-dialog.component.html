@@ -4,7 +4,7 @@
   </button>
   <div class="dialog-content">
     <div class="image-frame">
-      <img [src]="book.coverUrl || 'assets/placeholder.jpg'" alt="{{ book.title }}" />
+      <img [src]="getCoverImagePath(book.coverUrl)" alt="{{ book.title }}" />
     </div>
     <div class="book-details">
       <h2>{{ book.title }}</h2>

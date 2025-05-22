@@ -20,13 +20,8 @@
             <ng-container matColumnDef="book">
               <th mat-header-cell *matHeaderCellDef>Book</th>
               <td mat-cell *matCellDef="let book">
-                <div class="book-info">
-                  <img [src]="book.coverUrl || 'assets/placeholder.jpg'" alt="Book cover" class="book-cover">
-                  <div>
-                    <div class="book-title">{{ book.bookTitle || book.title }}</div>
-                    <div class="book-author">{{ book.author }}</div>
-                    <div class="book-genre">{{ book.genre }}</div>
-                  </div>
+                <div class="book-title-container">
+                  <span class="book-title">{{ getBookTitle(book) }}</span>
                 </div>
               </td>
             </ng-container>
@@ -86,13 +81,8 @@
             <ng-container matColumnDef="book">
               <th mat-header-cell *matHeaderCellDef>Book</th>
               <td mat-cell *matCellDef="let book">
-                <div class="book-info">
-                  <img [src]="book.coverUrl || 'assets/placeholder.jpg'" alt="Book cover" class="book-cover">
-                  <div>
-                    <div class="book-title">{{ book.bookTitle || book.title }}</div>
-                    <div class="book-author">{{ book.author }}</div>
-                    <div class="book-genre">{{ book.genre }}</div>
-                  </div>
+                <div class="book-title-container">
+                  <span class="book-title">{{ getBookTitle(book) }}</span>
                 </div>
               </td>
             </ng-container>
@@ -152,13 +142,8 @@
             <ng-container matColumnDef="book">
               <th mat-header-cell *matHeaderCellDef>Book</th>
               <td mat-cell *matCellDef="let book">
-                <div class="book-info">
-                  <img [src]="book.coverUrl || 'assets/placeholder.jpg'" alt="Book cover" class="book-cover">
-                  <div>
-                    <div class="book-title">{{ book.bookTitle || book.title }}</div>
-                    <div class="book-author">{{ book.author }}</div>
-                    <div class="book-genre">{{ book.genre }}</div>
-                  </div>
+                <div class="book-title-container">
+                  <span class="book-title">{{ getBookTitle(book) }}</span>
                 </div>
               </td>
             </ng-container>
@@ -218,13 +203,8 @@
             <ng-container matColumnDef="book">
               <th mat-header-cell *matHeaderCellDef>Book</th>
               <td mat-cell *matCellDef="let book">
-                <div class="book-info">
-                  <img [src]="book.coverUrl || 'assets/placeholder.jpg'" alt="Book cover" class="book-cover">
-                  <div>
-                    <div class="book-title">{{ book.bookTitle || book.title }}</div>
-                    <div class="book-author">{{ book.author }}</div>
-                    <div class="book-genre">{{ book.genre }}</div>
-                  </div>
+                <div class="book-title-container">
+                  <span class="book-title">{{ getBookTitle(book) }}</span>
                 </div>
               </td>
             </ng-container>

@@ -75,6 +75,18 @@ class BookController {
       res.status(404).json({ error: error.message });
     }
   }
+
+  static async getBooksByIds(req, res) {
+    const { bookIds } = req.body;
+
+    try {
+      const books = await BookService.getBooksByIds(bookIds);
+      res.status(200).json(books);
+    } catch (error) {
+      console.error('Error fetching books by IDs:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = BookController;

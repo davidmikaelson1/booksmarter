@@ -97,6 +97,11 @@ class BookInstanceController {
       res.status(404).json({ error: error.message });
     }
   }
+
+  static async getInstancesByIds(req, res) {
+    const { instanceIds } = req.body;
+    // Query all BookInstances with those IDs and return them
+  }
 }
 
 module.exports = BookInstanceController;

@@ -13,6 +13,12 @@ import { ToolbarComponent } from '../../shared/toolbar/toolbar.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { ImagePathService } from '../../services/image-path.service';
+import { BookService } from '../../services/book.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
+import { Book } from '../../models/book.model';
+import { BookInstance } from '../../models/book-instance.model';
 
 @Component({
   selector: 'app-my-books',
@@ -34,54 +40,99 @@ import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 })
 export class MyBooksComponent implements OnInit {
   myBooks: OrderWithDetails[] = [];
+  bookInstances: BookInstance[] = [];
+  booksById: { [bookId: number]: Book } = {};
+  instanceIdToBookId: { [instanceId: number]: number } = {}; // Add this property
   loading = false;
-  today = new Date(); // Add near the top of the class
+  today = new Date();
+  currentReaderId: number | null = null;
 
   // Columns to display in the table
   displayedColumns: string[] = ['book', 'status', 'rentDate', 'returnDeadline', 'actions'];
 
   constructor(
     private orderService: OrderService,
+    private bookService: BookService, // Add BookService
     private authService: AuthService,
     private snackbarService: SnackbarService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private imagePathService: ImagePathService
   ) {}
 
   ngOnInit(): void {
-    this.loadMyBooks();
+    this.authService.currentUser.subscribe(user => {
+      if (user && user.userId) {
+        this.currentReaderId = user.userId;
+        this.loadMyBooks();
+      }
+    });
   }
 
+  // Update loadMyBooks method to flatten the response object
   loadMyBooks(): void {
-    this.loading = true;
+    if (!this.currentReaderId) {
+      this.snackbarService.open('You must be logged in to view your books', 'Close');
+      return;
+    }
 
-    // Subscribe to the auth service's currentUser observable
-    this.authService.currentUser.subscribe({
-      next: (user) => {
-        if (!user || !user.userId) {
-          this.snackbarService.open('You need to be logged in to view your books', 'Close');
+    this.loading = true;
+    this.orderService.getReaderRentedBooks(this.currentReaderId).subscribe({
+      next: (response: any) => {
+        // Flatten grouped response if needed
+        if (response && typeof response === 'object' && !Array.isArray(response)) {
+          this.myBooks = [
+            ...(response.active || []),
+            ...(response.pending_approval || []),
+            ...(response.pending_return || []),
+            ...(response.denied || []),
+            ...(response.returned || [])
+          ];
+        } else {
+          this.myBooks = response;
+        }
+
+        // Get all unique book instance IDs from orders
+        const instanceIds = Array.from(new Set(this.myBooks.map(order => order.rentedBookId).filter(Boolean)));
+
+        if (instanceIds.length === 0) {
           this.loading = false;
           return;
         }
 
-        this.orderService.getReaderRentedBooks(user.userId).subscribe({
-          next: (books) => {
-            this.myBooks = books;
-            this.loading = false;
-            this.logOrderStatuses(); // Add debugging
+        // Fetch all BookInstances, then fetch all Books by bookId
+        this.bookService.getBookInstancesByIds(instanceIds).subscribe({
+          next: (instances) => {
+            console.log('Fetched instances:', instances); // <-- Add this
+            this.bookInstances = instances;
+            this.instanceIdToBookId = {};
+            instances.forEach(inst => {
+              console.log('Mapping:', inst.instanceId, inst.bookId); // <-- Add this
+              this.instanceIdToBookId[Number(inst.instanceId)] = inst.bookId;
+            });
+            const bookIds = Array.from(new Set(instances.map(inst => inst.bookId)));
+            this.bookService.getBooksByIds(bookIds).subscribe({
+              next: (books) => {
+                // Map books by their ID for quick lookup
+                this.booksById = {};
+                books.forEach(book => this.booksById[book.bookId] = book);
+                this.loading = false;
+              },
+              error: () => { this.loading = false; }
+            });
           },
-          error: (error) => {
-            console.error('Error loading books:', error);
-            this.snackbarService.open('Could not load your books', 'Close');
-            this.loading = false;
-          }
+          error: () => { this.loading = false; }
         });
       },
-      error: (error) => {
-        console.error('Authentication error:', error);
-        this.snackbarService.open('Authentication error', 'Close');
+      error: () => {
+        this.snackbarService.open('Could not load your books', 'Close');
         this.loading = false;
       }
     });
+  }
+
+  // Helper to get book title by order
+  getBookTitle(order: OrderWithDetails): string {
+    return order.bookTitle || 'Unknown';
   }
 
   initiateReturn(book: OrderWithDetails): void {
@@ -89,7 +140,7 @@ export class MyBooksComponent implements OnInit {
       width: '300px',
       data: {
         title: 'Return Book',
-        message: `Are you sure you want to return "${book.bookTitle || book.bookTitle}"?`,
+        message: `Are you sure you want to return "${book.bookTitle}"?`,
         confirmButton: 'Return'
       }
     });
@@ -114,8 +165,44 @@ export class MyBooksComponent implements OnInit {
         this.loadMyBooks(); // Refresh the list
       },
       error: (error) => {
-        console.error('Error initiating return:', error);
         this.snackbarService.open(error.message || 'Could not initiate return', 'Close');
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Create a new book rental request
+   */
+  rentNewBook(instanceId: number): void {
+    if (!this.currentReaderId) {
+      this.snackbarService.open('You must be logged in to rent books', 'Close');
+      return;
+    }
+
+    // Calculate rental period (default 14 days)
+    const today = new Date();
+    const returnDate = new Date();
+    returnDate.setDate(today.getDate() + 14);
+
+    // Format dates for API
+    const rentDate = this.formatDate(today);
+    const returnDeadline = this.formatDate(returnDate);
+
+    this.loading = true;
+    this.orderService.rentBook(
+      this.currentReaderId,
+      instanceId,
+      rentDate,
+      returnDeadline
+    ).subscribe({
+      next: () => {
+        this.snackbarService.open('Book rental request submitted successfully', 'Close', 3000);
+        this.loadMyBooks();
+      },
+      error: (error) => {
+        console.error('Error renting book:', error);
+        this.snackbarService.open(error.message || 'Could not rent book', 'Close');
         this.loading = false;
       }
     });
@@ -129,7 +216,7 @@ export class MyBooksComponent implements OnInit {
       width: '300px',
       data: {
         title: 'Cancel Request',
-        message: `Are you sure you want to cancel your request for "${book.bookTitle || book.bookTitle}"?`,
+        message: `Are you sure you want to cancel your request for "${book.bookTitle}"?`,
         confirmButton: 'Cancel Request'
       }
     });
@@ -153,6 +240,11 @@ export class MyBooksComponent implements OnInit {
     });
   }
 
+  // Helper method to format date as YYYY-MM-DD
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
   getStatusDisplay(status: string): string {
     switch (status) {
       case 'ACTIVE': return 'Active';
@@ -174,10 +266,27 @@ export class MyBooksComponent implements OnInit {
     return status === 'ACTIVE';
   }
 
-  // Add a method to filter books by status for UI organization
-  filterBooksByStatus(status: string | string[]): OrderWithDetails[] {
-    const statusArray = Array.isArray(status) ? status : [status];
-    return this.myBooks.filter(book => statusArray.includes(book.status));
+  isBookOverdue(returnDeadline: string): boolean {
+    if (!returnDeadline) return false;
+    const deadline = new Date(returnDeadline);
+    return deadline < this.today;
+  }
+
+  getDaysUntilDue(returnDeadline: string): number {
+    if (!returnDeadline) return 0;
+    const deadline = new Date(returnDeadline);
+    const diffTime = deadline.getTime() - this.today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  // Add this method to handle image paths consistently
+  getCoverImagePath(coverUrl: string | undefined): string {
+    return this.imagePathService.getCoverImagePath(coverUrl);
+  }
+
+  // Filter books by status for UI organization
+  filterBooksByStatus(statuses: string[]): OrderWithDetails[] {
+    return this.myBooks.filter(book => statuses.includes(book.status));
   }
 
   // Helper method to get appropriate action text based on status
@@ -193,12 +302,5 @@ export class MyBooksComponent implements OnInit {
     }
   }
 
-  // Add a debug method to help diagnose status issues
-  logOrderStatuses(): void {
-    if (this.myBooks.length > 0) {
-      console.log('Order statuses in myBooks:');
-      console.log(this.myBooks.map(book => book.status));
-      console.log('Pending orders:', this.filterBooksByStatus(['PENDING_APPROVAL', 'PENDING_RETURN']));
-    }
-  }
+  // Rest of your existing methods...
 }

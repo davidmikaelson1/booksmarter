@@ -91,6 +91,27 @@ export class BookService {
     ).pipe(catchError(this.handleError));
   }
 
+  getBookInstancesByIds(instanceIds: number[]): Observable<BookInstance[]> {
+    return this.http.post<BookInstance[]>(
+      `${this.apiUrl}/book-instances/batch`,
+      { instanceIds },
+      this.getHttpOptions()
+    ).pipe(catchError(this.handleError));
+  }
+
+  getBooksByIds(bookIds: number[]): Observable<Book[]> {
+    return this.http.post<Book[]>(
+      `${this.apiUrl}/books/batch`,
+      { bookIds },
+      this.getHttpOptions()
+    ).pipe(catchError(this.handleError));
+  }
+
+  getBookById(bookId: number): Observable<Book> {
+    return this.http.get<Book>(`${this.apiUrl}/books/${bookId}`, this.getHttpOptions())
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'An error occurred';
 

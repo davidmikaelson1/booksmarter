@@ -22,7 +22,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:4200', // Your Angular app URL
+  origin: 'http://localhost:4200',
   credentials: true
 }));
 app.use(cookieParser()); // Add this middleware

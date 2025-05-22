@@ -2,9 +2,6 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const authenticateToken = (req, res, next) => {
-  // Add this debugging
-  console.log('Auth middleware cookies:', req.cookies);
-  console.log('Auth middleware headers:', req.headers);
 
   const token = req.cookies.authToken; // Read token from cookies
   if (!token) return res.status(401).json({ error: 'Access denied' });
