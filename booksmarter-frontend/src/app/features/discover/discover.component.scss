@@ -1,0 +1,47 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.discover-container {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 4rem auto;
+  max-width: 1000px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.books-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.book-row {
+  display: flex;
+  gap: 2rem;
+  justify-content: flex-start;
+}
+
+app-book-card {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 33%;
+}
+
+.no-results-message {
+  text-align: center;
+  color: #888;
+  font-size: 1.2rem;
+  margin: 2rem 0;
+}
+
+app-footer {
+  margin-top: auto;
+}

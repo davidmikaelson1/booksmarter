@@ -177,3 +177,15 @@
   width: 100%;
   table-layout: fixed;
 }
+
+/* Add this to my-books.component.scss */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  mat-spinner {
+    margin-bottom: 1rem;
+  }
+}

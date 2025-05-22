@@ -12,13 +12,12 @@ import { AuthService } from '../../services/auth.service';
 import { ToolbarComponent } from '../../shared/toolbar/toolbar.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/confirm-dialog.component';
-import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { MatTabsModule } from '@angular/material/tabs';
 import { ImagePathService } from '../../services/image-path.service';
 import { BookService } from '../../services/book.service';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
 import { Book } from '../../models/book.model';
 import { BookInstance } from '../../models/book-instance.model';
+import { MatProgressSpinnerModule, MatSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-my-books',
@@ -33,7 +32,8 @@ import { BookInstance } from '../../models/book-instance.model';
     MatTooltipModule,
     ToolbarComponent,
     FooterComponent,
-    MatTabsModule
+    MatTabsModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './my-books.component.html',
   styleUrls: ['./my-books.component.scss']
@@ -43,7 +43,6 @@ export class MyBooksComponent implements OnInit {
   bookInstances: BookInstance[] = [];
   booksById: { [bookId: number]: Book } = {};
   instanceIdToBookId: { [instanceId: number]: number } = {}; // Add this property
-  loading = false;
   today = new Date();
   currentReaderId: number | null = null;
 
@@ -75,7 +74,6 @@ export class MyBooksComponent implements OnInit {
       return;
     }
 
-    this.loading = true;
     this.orderService.getReaderRentedBooks(this.currentReaderId).subscribe({
       next: (response: any) => {
         // Flatten grouped response if needed
@@ -95,7 +93,6 @@ export class MyBooksComponent implements OnInit {
         const instanceIds = Array.from(new Set(this.myBooks.map(order => order.rentedBookId).filter(Boolean)));
 
         if (instanceIds.length === 0) {
-          this.loading = false;
           return;
         }
 
@@ -115,17 +112,17 @@ export class MyBooksComponent implements OnInit {
                 // Map books by their ID for quick lookup
                 this.booksById = {};
                 books.forEach(book => this.booksById[book.bookId] = book);
-                this.loading = false;
               },
-              error: () => { this.loading = false; }
+              error: () => {
+              }
             });
           },
-          error: () => { this.loading = false; }
+          error: () => {
+          }
         });
       },
       error: () => {
         this.snackbarService.open('Could not load your books', 'Close');
-        this.loading = false;
       }
     });
   }
@@ -136,12 +133,15 @@ export class MyBooksComponent implements OnInit {
   }
 
   initiateReturn(book: OrderWithDetails): void {
+    const isResubmission = book.status === 'Denied';
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '300px',
       data: {
-        title: 'Return Book',
-        message: `Are you sure you want to return "${book.bookTitle}"?`,
-        confirmButton: 'Return'
+        title: isResubmission ? 'Resubmit Return' : 'Return Book',
+        message: isResubmission
+          ? `Are you sure you want to resubmit "${book.bookTitle}" for return?`
+          : `Are you sure you want to return "${book.bookTitle}"?`,
+        confirmButton: isResubmission ? 'Resubmit' : 'Return'
       }
     });
 
@@ -153,8 +153,6 @@ export class MyBooksComponent implements OnInit {
   }
 
   private processReturn(rentId: number): void {
-    this.loading = true;
-
     this.orderService.initiateReturn(rentId).subscribe({
       next: () => {
         this.snackbarService.open(
@@ -166,7 +164,6 @@ export class MyBooksComponent implements OnInit {
       },
       error: (error) => {
         this.snackbarService.open(error.message || 'Could not initiate return', 'Close');
-        this.loading = false;
       }
     });
   }
@@ -189,7 +186,6 @@ export class MyBooksComponent implements OnInit {
     const rentDate = this.formatDate(today);
     const returnDeadline = this.formatDate(returnDate);
 
-    this.loading = true;
     this.orderService.rentBook(
       this.currentReaderId,
       instanceId,
@@ -203,7 +199,6 @@ export class MyBooksComponent implements OnInit {
       error: (error) => {
         console.error('Error renting book:', error);
         this.snackbarService.open(error.message || 'Could not rent book', 'Close');
-        this.loading = false;
       }
     });
   }
@@ -223,8 +218,6 @@ export class MyBooksComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loading = true;
-
         this.orderService.deleteOrder(book.rentId).subscribe({
           next: () => {
             this.snackbarService.open('Book request cancelled successfully', 'Close', 3000);
@@ -233,7 +226,6 @@ export class MyBooksComponent implements OnInit {
           error: (error) => {
             console.error('Error cancelling book request:', error);
             this.snackbarService.open(error.message || 'Could not cancel book request', 'Close');
-            this.loading = false;
           }
         });
       }
@@ -261,9 +253,10 @@ export class MyBooksComponent implements OnInit {
     return 'status-' + status.toLowerCase();
   }
 
+  // Update the canInitiateReturn method to allow DENIED books to be returned
   canInitiateReturn(status: string): boolean {
-    // Only allow returns for active rentals
-    return status === 'ACTIVE';
+    // Allow returns for ACTIVE or DENIED status
+    return status === 'ACTIVE' || status === 'DENIED';
   }
 
   isBookOverdue(returnDeadline: string): boolean {
@@ -301,6 +294,4 @@ export class MyBooksComponent implements OnInit {
       default: return '';
     }
   }
-
-  // Rest of your existing methods...
 }

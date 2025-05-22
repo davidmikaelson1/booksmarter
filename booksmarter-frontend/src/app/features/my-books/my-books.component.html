@@ -5,11 +5,7 @@
     <mat-card class="card">
       <mat-card-title class="card-title">My Books</mat-card-title>
 
-      <div *ngIf="loading" class="loading">
-        <p>Loading your books...</p>
-      </div>
-
-      <!-- Add tabs to organize different book statuses -->
+      <!-- Mat-tab-group and rest of the content remains the same -->
       <mat-tab-group>
         <mat-tab label="Current Books">
           <div *ngIf="filterBooksByStatus(['ACTIVE']).length === 0" class="empty-state">
@@ -54,13 +50,14 @@
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let book">
+                <!-- Update the button text based on status -->
                 <button
                   mat-raised-button
                   color="primary"
                   [disabled]="!canInitiateReturn(book.status)"
                   (click)="initiateReturn(book)"
                   matTooltip="Initiate a return request for this book">
-                  Return Book
+                  {{ book.status === 'DENIED' ? 'Resubmit Return' : 'Return Book' }}
                 </button>
               </td>
             </ng-container>

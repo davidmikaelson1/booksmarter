@@ -65,13 +65,8 @@ class OrderService {
       throw new Error('Order cannot be denied in its current state');
     }
     
-    if (order.status === 'PENDING_APPROVAL') {
-      // If denying a rental request, update status to DENIED
-      return orderRepository.updateStatus(rentId, 'DENIED', librarianId, reason);
-    } else {
-      // If denying a return request, set it back to ACTIVE
-      return orderRepository.updateStatus(rentId, 'ACTIVE', librarianId, reason);
-    }
+    // Always set to DENIED whether it's a rental or return request
+    return orderRepository.updateStatus(rentId, 'DENIED', librarianId, reason);
   }
   
   async initiateReturn(rentId) {
@@ -80,8 +75,9 @@ class OrderService {
       throw new Error('Order not found');
     }
     
-    if (order.status !== 'ACTIVE') {
-      throw new Error('Order must be active to initiate return');
+    // Allow both ACTIVE and DENIED status to initiate returns
+    if (order.status !== 'ACTIVE' && order.status !== 'DENIED') {
+      throw new Error('Order must be active or denied to initiate return');
     }
     
     // Update order status to PENDING_RETURN

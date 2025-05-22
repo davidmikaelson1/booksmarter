@@ -1,1 +1,19 @@
-<p>discover works!</p>
+<app-toolbar></app-toolbar>
+<div class="discover-container">
+  <div class="books-grid" *ngIf="!noResults">
+    <div class="book-row" *ngFor="let row of getRows()">
+      <app-book-card *ngFor="let book of row" [bookWithInstance]="book"></app-book-card>
+    </div>
+  </div>
+  <div *ngIf="noResults" class="no-results-message">
+    No books found matching your search.
+  </div>
+  <mat-paginator
+    *ngIf="!noResults"
+    [length]="totalBooks"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[30]"
+    (page)="onPageChange($event)">
+  </mat-paginator>
+</div>
+<app-footer></app-footer>
