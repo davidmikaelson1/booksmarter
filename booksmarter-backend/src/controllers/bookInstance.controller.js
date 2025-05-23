@@ -1,4 +1,5 @@
 const BookInstanceService = require('../services/bookInstance.service');
+const CollectionRepository = require('../repositories/collection.repository'); // Assuming the path
 
 class BookInstanceController {
   static async getAllBookInstances(req, res) {
@@ -30,6 +31,12 @@ class BookInstanceController {
     try {
       const { bookId, totalCopies, collectionId } = req.body;
       
+      // Fix: Pass the terminalId parameter to findById
+      const collection = await CollectionRepository.findById(collectionId, null);
+      if (!collection) {
+        return res.status(404).json({ error: 'Collection not found' });
+      }
+      
       if (!bookId || !totalCopies || !collectionId) {
         return res.status(400).json({ error: 'Book ID, total copies, and collection ID are required' });
       }
@@ -42,10 +49,42 @@ class BookInstanceController {
         bookId,
         collectionId,
         totalCopies,
-        availableCopies: totalCopies // Initially all copies are available
+        availableCopies: totalCopies
       };
 
       const bookInstance = await BookInstanceService.createBookInstance(bookInstanceData);
+      
+      // Update collection counts after creating instance
+      await CollectionRepository.updateCollectionCounts(collectionId);
+      
+      res.status(201).json({ 
+        message: 'Book added to collection successfully', 
+        bookInstance 
+      });
+    } catch (error) {
+      console.error('Error creating book instance:', error);
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async createBookInstanceForTerminal(req, res) {
+    try {
+      const { bookId, totalCopies } = req.body;
+      const terminalId = parseInt(req.params.terminalId);
+      
+      if (!bookId || !totalCopies) {
+        return res.status(400).json({ error: 'Book ID and total copies are required' });
+      }
+      
+      if (totalCopies < 1) {
+        return res.status(400).json({ error: 'Total copies must be at least 1' });
+      }
+
+      const bookInstance = await BookInstanceService.createBookInstanceForTerminal(
+        bookId, 
+        totalCopies, 
+        terminalId
+      );
       
       res.status(201).json({ 
         message: 'Book added to collection successfully', 

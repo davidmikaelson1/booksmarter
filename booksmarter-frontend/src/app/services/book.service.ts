@@ -83,10 +83,12 @@ export class BookService {
   }
 
   addBookToCollection(data: { bookId: number, totalCopies: number, collectionId: number }): Observable<BookInstance> {
-    // Add HTTP options for consistency
     return this.http.post<BookInstance>(
-      `${this.apiUrl}/book-instances`,
-      data,
+      `${this.apiUrl}/book-instances/terminal/${data.collectionId}`,
+      {
+        bookId: data.bookId,
+        totalCopies: data.totalCopies
+      },
       this.getHttpOptions()
     ).pipe(catchError(this.handleError));
   }

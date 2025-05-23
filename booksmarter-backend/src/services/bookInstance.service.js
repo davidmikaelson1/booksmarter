@@ -174,6 +174,39 @@ class BookInstanceService {
       throw error;
     }
   }
+
+  static async createBookInstanceForTerminal(bookId, totalCopies, terminalId) {
+    try {
+      // Get or create collection for this terminal
+      const collection = await CollectionRepository.getOrCreateCollectionForTerminal(terminalId);
+      
+      const bookInstanceData = {
+        bookId,
+        collectionId: collection.collectionId,
+        totalCopies,
+        availableCopies: totalCopies
+      };
+
+      const bookInstance = new BookInstance(
+        null,
+        bookInstanceData.bookId,
+        bookInstanceData.collectionId,
+        bookInstanceData.totalCopies,
+        bookInstanceData.availableCopies
+      );
+      
+      const instanceId = await BookInstanceRepository.createBookInstance(bookInstance);
+      bookInstance.instanceId = instanceId;
+      
+      // Update collection counts
+      await CollectionRepository.updateCollectionCounts(collection.collectionId);
+      
+      return bookInstance;
+    } catch (error) {
+      console.error('Error creating book instance for terminal:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = BookInstanceService;
